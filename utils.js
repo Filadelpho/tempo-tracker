@@ -109,9 +109,84 @@ const CONFIG_PADRAO = {
   pomodoro: { foco: 25, pausa: 5, pausaLonga: 15, ciclos: 4 }
 };
 
+// ---------- Validação da configuração ----------
+// Só campos conhecidos, com o tipo e o tamanho certos. Qualquer outra coisa é descartada
+// (proteção contra "mass assignment": nada de campos extras entrando pela config).
+
+const texto = (v, max) => (typeof v === "string" ? v.trim().slice(0, max) : undefined);
+const inteiro = (v, min, max) => (Number.isInteger(v) && v >= min && v <= max ? v : undefined);
+const booleano = (v) => (typeof v === "boolean" ? v : undefined);
+const lista = (v, max, validar) => (Array.isArray(v) ? v.map(validar).filter((x) => x !== undefined).slice(0, max) : undefined);
+const hora = (v) => (typeof v === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(v) ? v : undefined);
+const dominio = (v) => {
+  const d = texto(v, 100);
+  return d && /^[a-z0-9.-]+$/i.test(d) ? d.toLowerCase() : undefined;
+};
+const linkSeguro = (v) => {
+  try {
+    const url = new URL(v);
+    return url.protocol === "https:" || url.protocol === "http:" ? url.href.slice(0, 500) : undefined;
+  } catch {
+    return undefined;
+  }
+};
+const semVazios = (obj) => Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined));
+
+function sanitizarModo(m) {
+  if (!m || typeof m !== "object") return undefined;
+  const id = texto(m.id, 40);
+  if (!id) return undefined;
+  return {
+    id,
+    nome: texto(m.nome, 20) || "Sem nome",
+    emoji: texto(m.emoji, 8) || "⭐",
+    contar: booleano(m.contar) ?? true,
+    metaMin: inteiro(m.metaMin, 0, 1440) ?? 0,
+    produtivos: lista(m.produtivos, 300, dominio) || [],
+    distracoes: lista(m.distracoes, 300, dominio) || [],
+    favoritos: lista(m.favoritos, 30, (f) => {
+      const url = f && linkSeguro(f.url);
+      return url ? { titulo: texto(f.titulo, 40) || new URL(url).hostname, url } : undefined;
+    }) || []
+  };
+}
+
+function sanitizarConfig(s) {
+  if (!s || typeof s !== "object") return {};
+  const agenda = s.agenda && typeof s.agenda === "object" ? s.agenda : {};
+  const pomodoro = s.pomodoro && typeof s.pomodoro === "object" ? s.pomodoro : {};
+  const expediente = s.expediente && typeof s.expediente === "object" ? s.expediente : {};
+  const manual = s.modoManual;
+  const dias = lista(agenda.dias, 7, (d) => texto(d, 40));
+  return semVazios({
+    versao: inteiro(s.versao, 1, 100),
+    nome: texto(s.nome, 30),
+    modoAtivo: texto(s.modoAtivo, 40),
+    modos: lista(s.modos, 20, sanitizarModo),
+    expediente: semVazios({ inicio: hora(expediente.inicio), fim: hora(expediente.fim) }),
+    agenda: semVazios({
+      automatico: booleano(agenda.automatico),
+      dias: dias && dias.length === 7 ? dias : undefined,
+      trabalhoNoLazer: booleano(agenda.trabalhoNoLazer)
+    }),
+    modoManual: manual && typeof manual === "object" && /^\d{4}-\d{2}-\d{2}$/.test(manual.dia) && texto(manual.modo, 40)
+      ? { dia: manual.dia, modo: texto(manual.modo, 40) }
+      : null,
+    aguaMeta: inteiro(s.aguaMeta, 1, 30),
+    widget: booleano(s.widget),
+    relatorio: ["segunda", "domingo", "desligado"].includes(s.relatorio) ? s.relatorio : undefined,
+    pomodoro: semVazios({
+      foco: inteiro(pomodoro.foco, 1, 180),
+      pausa: inteiro(pomodoro.pausa, 1, 60),
+      pausaLonga: inteiro(pomodoro.pausaLonga, 1, 90),
+      ciclos: inteiro(pomodoro.ciclos, 1, 12)
+    })
+  });
+}
+
 function mesclarConfig(salva = {}) {
   const config = structuredClone(CONFIG_PADRAO);
-  salva = migrarConfig(structuredClone(salva || {}));
+  salva = sanitizarConfig(migrarConfig(structuredClone(salva || {})));
   return {
     ...config,
     ...salva,

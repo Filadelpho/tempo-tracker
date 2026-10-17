@@ -38,7 +38,7 @@
     aoDestacar: destacar,
     aoFechar: () => {
       if (estado.pomodoro.aguardando) comando("dispensar");
-      else chrome.storage.local.set({ widgetOculto: chaveFase() });
+      else chrome.runtime.sendMessage({ tipo: "widget-ocultar", chave: chaveFase() }).catch(() => {});
     }
   });
 
@@ -89,7 +89,7 @@
       crono.el.removeEventListener("pointermove", mover);
       crono.el.removeEventListener("pointerup", soltar);
       crono.el.removeEventListener("pointercancel", soltar);
-      if (estado.pos) chrome.storage.local.set({ widgetPos: estado.pos });
+      if (estado.pos) chrome.runtime.sendMessage({ tipo: "widget-posicao", ...estado.pos }).catch(() => {});
     };
     crono.el.addEventListener("pointermove", mover);
     crono.el.addEventListener("pointerup", soltar);
@@ -125,36 +125,28 @@
   }
 
   // ---------- Dados ----------
+  // O script da página não lê o armazenamento da extensão: pede ao background
+  // só o estado do cronômetro e recebe as mudanças por mensagem.
 
-  function aplicarDados(dados) {
-    if ("pomodoro" in dados) estado.pomodoro = lerPomodoro(dados.pomodoro);
-    if ("config" in dados) {
-      const config = mesclarConfig(dados.config);
-      estado.focoMin = config.pomodoro.foco;
-      estado.ativo = config.widget !== false;
-    }
-    if ("widgetOculto" in dados) estado.oculto = dados.widgetOculto;
-    if ("widgetPos" in dados) estado.pos = dados.widgetPos;
+  function aplicarEstado(novo) {
+    if (!novo || typeof novo !== "object") return;
+    estado.pomodoro = lerPomodoro(novo.pomodoro);
+    estado.focoMin = novo.focoMin || 25;
+    estado.ativo = novo.ativo !== false;
+    estado.oculto = novo.oculto || null;
+    estado.pos = novo.pos || null;
+    render();
+    aplicarPosicao();
   }
 
-  chrome.storage.local.get(["pomodoro", "config", "widgetOculto", "widgetPos"]).then((dados) => {
-    aplicarDados(dados);
+  chrome.runtime.sendMessage({ tipo: "widget-estado" }).then((novo) => {
     document.documentElement.append(host);
     host.dataset.montado = "1";
-    render();
-    aplicarPosicao();
-  });
+    aplicarEstado(novo);
+  }).catch(() => {});
 
-  chrome.storage.onChanged.addListener((mudancas, area) => {
-    if (area !== "local") return;
-    const dados = {};
-    for (const chave of ["pomodoro", "config", "widgetOculto", "widgetPos"]) {
-      if (chave in mudancas) dados[chave] = mudancas[chave].newValue;
-    }
-    if (Object.keys(dados).length === 0) return;
-    aplicarDados(dados);
-    render();
-    aplicarPosicao();
+  chrome.runtime.onMessage.addListener((msg, remetente) => {
+    if (remetente.id === chrome.runtime.id && msg && msg.tipo === "widget-estado") aplicarEstado(msg.estado);
   });
 
   // O tempo corre a cada segundo (só desenha se estiver aparecendo)

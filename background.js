@@ -1,5 +1,9 @@
 importScripts("utils.js");
 
+// Só as partes confiáveis da extensão (popup, ajustes, background) leem o armazenamento.
+// O script que roda dentro dos sites não enxerga o histórico: recebe só o estado do cronômetro.
+chrome.storage.local.setAccessLevel({ accessLevel: "TRUSTED_CONTEXTS" }).catch(console.error);
+
 const ALARME = "tick";
 const ALARME_POMODORO = "pomodoro";
 const ALARME_RELATORIO = "relatorio";
@@ -328,18 +332,64 @@ chrome.storage.onChanged.addListener((mudancas, area) => {
 });
 
 // O popup manda os comandos do pomodoro pra cá, porque ele fecha a qualquer momento
+// ---------- Cronômetro flutuante: só o mínimo vai pras páginas ----------
+
+const CHAVES_DO_WIDGET = ["pomodoro", "config", "widgetOculto", "widgetPos"];
+
+async function estadoDoWidget() {
+  const dados = await chrome.storage.local.get(CHAVES_DO_WIDGET);
+  const config = mesclarConfig(dados.config);
+  return {
+    pomodoro: lerPomodoro(dados.pomodoro),
+    focoMin: config.pomodoro.foco,
+    ativo: config.widget !== false,
+    oculto: typeof dados.widgetOculto === "string" ? dados.widgetOculto : null,
+    pos: dados.widgetPos || null
+  };
+}
+
+// Avisa as abas abertas quando o cronômetro muda
+async function avisarAbas() {
+  const estado = await estadoDoWidget();
+  const abas = await chrome.tabs.query({ url: ["http://*/*", "https://*/*"] });
+  for (const aba of abas) chrome.tabs.sendMessage(aba.id, { tipo: "widget-estado", estado }).catch(() => {});
+}
+
+chrome.storage.onChanged.addListener((mudancas, area) => {
+  if (area === "local" && CHAVES_DO_WIDGET.some((k) => k in mudancas)) avisarAbas().catch(console.error);
+});
+
+// ---------- Mensagens: só da própria extensão e só comandos conhecidos ----------
+
+const ACOES_POMODORO = ["iniciar", "pausar", "retomar", "parar", "dispensar"];
+const numeroEntre = (v, min, max) => typeof v === "number" && Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : null;
+
 chrome.runtime.onMessage.addListener((msg, remetente, responder) => {
-  if (msg.tipo === "pomodoro") {
-    enfileirar(() => comandoPomodoro(msg.acao)).then(() => responder(true));
+  if (remetente.id !== chrome.runtime.id || !msg || typeof msg.tipo !== "string") return;
+  const responderDepois = (promessa) => {
+    promessa.then((r) => responder(r ?? true), () => responder(false));
     return true;
-  }
-  if (msg.tipo === "tick") {
-    agendarTick().then(() => responder(true));
-    return true;
-  }
-  if (msg.tipo === "janela") {
-    abrirJanela().then(() => responder(true));
-    return true;
+  };
+
+  switch (msg.tipo) {
+    case "pomodoro":
+      if (!ACOES_POMODORO.includes(msg.acao)) return;
+      return responderDepois(enfileirar(() => comandoPomodoro(msg.acao)));
+    case "tick":
+      return responderDepois(agendarTick());
+    case "janela":
+      return responderDepois(abrirJanela());
+    case "widget-estado":
+      return responderDepois(estadoDoWidget());
+    case "widget-ocultar":
+      if (typeof msg.chave !== "string" || msg.chave.length > 100) return;
+      return responderDepois(chrome.storage.local.set({ widgetOculto: msg.chave }));
+    case "widget-posicao": {
+      const direita = numeroEntre(msg.direita, 0, 10000);
+      const baixo = numeroEntre(msg.baixo, 0, 10000);
+      if (direita === null || baixo === null) return;
+      return responderDepois(chrome.storage.local.set({ widgetPos: { direita, baixo } }));
+    }
   }
 });
 

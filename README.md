@@ -38,6 +38,29 @@ Funciona no Chrome 116 ou mais novo, e também no Edge, Brave e Opera.
 | `offscreen/` | Página invisível que toca o som de aviso |
 | `icons/` | Ícones da extensão |
 
-## Privacidade
+## Privacidade e segurança
 
-Todos os dados ficam no seu computador, em `chrome.storage.local`. Nada é enviado para servidores. A única coisa externa é a fonte Inter, carregada do Google Fonts. Sem internet, a extensão usa a fonte do sistema.
+Todos os dados ficam no seu computador, em `chrome.storage.local`. Nada é enviado para servidores, e a extensão não tem conta, login, senha, cookie nem chave de API. A única coisa externa é a fonte Inter, carregada do Google Fonts. Sem internet, a extensão usa a fonte do sistema.
+
+Proteções aplicadas:
+
+- **Armazenamento só para partes confiáveis.** Só o popup, os ajustes e o background leem os dados (`storage.local` com `TRUSTED_CONTEXTS`). O script que roda dentro dos sites não tem acesso ao histórico: recebe do background só o estado do cronômetro.
+- **Mensagens validadas.** O background só aceita mensagens da própria extensão, com uma lista fechada de comandos e valores conferidos (tipo e faixa). Outras extensões e sites não conseguem se conectar (`externally_connectable` vazio).
+- **Configuração com campos conhecidos.** Tudo o que é lido do armazenamento passa por validação: campos desconhecidos são descartados, textos têm tamanho máximo, números têm faixa, sites precisam ser domínios válidos e favoritos só aceitam links `http`/`https`.
+- **Política de segurança de conteúdo.** As páginas da extensão só rodam scripts dela mesma (`script-src 'self'`), sem código remoto nem `eval`.
+- **Sem HTML vindo de dados.** Nomes de sites, metas e textos digitados entram na tela sempre como texto, nunca como HTML.
+
+Itens comuns em aplicações com servidor, como autenticação no servidor, RLS no banco, cookies e hash de senhas, não se aplicam aqui, porque não existe servidor, banco nem login.
+
+### Permissões
+
+| Permissão | Para quê |
+|---|---|
+| `tabs` | Saber qual site está na aba ativa |
+| `idle` | Parar de contar quando você está longe do computador |
+| `storage` | Guardar os dados no seu computador |
+| `alarms` | Contar o tempo e disparar o fim do Pomodoro |
+| `notifications` | Avisar o fim do foco e o relatório semanal |
+| `offscreen` | Tocar o som de aviso |
+| `scripting` + acesso aos sites | Mostrar o cronômetro flutuante nas páginas |
+| `favicon` | Mostrar o ícone de cada site |

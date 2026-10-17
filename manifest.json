@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Tempo Tracker",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Mostra quanto tempo você passa em cada site, pra fechar o dia mais produtiva.",
+  "minimum_chrome_version": "116",
   "permissions": [
     "tabs",
     "storage",
@@ -48,5 +49,11 @@
       "32": "icons/icon32.png"
     }
   },
-  "options_page": "options/options.html"
+  "options_page": "options/options.html",
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "externally_connectable": {
+    "ids": []
+  }
 }
