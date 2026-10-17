@@ -1,0 +1,102 @@
+* { box-sizing: border-box; }
+
+:root {
+  color-scheme: dark;
+  --texto: #f4f4f5;
+  --suave: #8e8e96;
+  --fundo: #0a0a0b;
+  --card: #18181b;
+  --campo: #0f0f11;
+  --borda: rgba(255, 255, 255, 0.08);
+  --azul: #2563ff;
+  --gradiente: linear-gradient(155deg, #1f5eff 0%, #4d8bff 100%);
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", -apple-system, "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-size: 14px;
+  color: var(--texto);
+  background: var(--fundo);
+}
+
+main { max-width: 860px; margin: 0 auto; padding: 24px 16px 80px; }
+h1 { margin: 0 0 16px; }
+h2 { margin: 0 0 8px; font-size: 16px; }
+section { margin-bottom: 28px; }
+.suave { color: var(--suave); }
+p.suave { margin: 0 0 12px; }
+button, input, textarea { font: inherit; color: inherit; }
+
+input, textarea {
+  border: 1px solid var(--borda);
+  background: var(--campo);
+  border-radius: 12px;
+  outline: none;
+  padding: 9px 12px;
+}
+textarea { resize: vertical; width: 100%; font-family: ui-monospace, monospace; font-size: 13px; }
+
+label { display: flex; flex-direction: column; gap: 4px; color: var(--suave); font-size: 13px; }
+label.check { flex-direction: row; align-items: center; gap: 6px; }
+
+.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.colunas { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 12px; }
+
+.modo {
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: 22px;
+  padding: 18px;
+  margin-bottom: 12px;
+}
+.modo-topo { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.modo-topo .emoji { width: 48px; text-align: center; font-size: 18px; }
+.modo-topo .nome { flex: 1; min-width: 140px; font-weight: 600; }
+
+button {
+  border: none;
+  background: var(--gradiente);
+  color: #fff;
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-weight: 600;
+  cursor: pointer;
+}
+button.secundario { background: var(--borda); color: var(--texto); }
+.icone { background: transparent; color: var(--suave); font-size: 20px; padding: 0 8px; }
+.icone:hover { color: #ef4444; }
+
+.rodape {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  background: var(--card);
+  border-top: 1px solid var(--borda);
+}
+
+input:focus, textarea:focus { border-color: var(--azul); }
+input[type="time"] { color-scheme: dark; }
+input[type="checkbox"] { accent-color: var(--azul); }
+h1 { font-size: 28px; letter-spacing: -0.02em; }
+
+.linha-opcao { margin: 10px 0; color: var(--texto); font-size: 14px; }
+.nota { font-size: 12px; margin: -4px 0 0 24px !important; }
+.dias-semana { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin: 12px 0; }
+.dias-semana label { background: var(--card); border: 1px solid var(--borda); border-radius: 14px; padding: 10px; }
+.dias-semana label.fim-de-semana { border-color: rgba(139, 92, 246, 0.4); }
+select {
+  font: inherit;
+  color: var(--texto);
+  background: var(--campo);
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  padding: 6px 8px;
+}
+select:disabled { opacity: 0.5; }
+.dias-semana select { width: 100%; margin-top: 6px; }

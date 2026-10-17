@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main id="conteudo">
+    <!-- HOJE -->
+    <section id="aba-hoje" class="aba">
+      <header class="saudacao">
+        <div class="avatar" aria-hidden="true">
+          <svg viewBox="0 0 40 40">
+            <path class="pele" d="M8 16 L9 4 L17 11 Z" />
+            <path class="pele" d="M32 16 L31 4 L23 11 Z" />
+            <circle class="pele" cx="20" cy="22" r="14" />
+            <circle class="olho" cx="14.5" cy="21" r="2.2" />
+            <circle class="olho" cx="25.5" cy="21" r="2.2" />
+            <path class="traco" d="M17.5 27 q2.5 2.5 5 0" />
+          </svg>
+        </div>
+        <div class="saudacao-texto">
+          <span id="saudacao">Olá!</span>
+          <button id="nome" class="nome" title="Toque pra mudar seu nome">Olá 👋</button>
+          <form id="nome-form" class="nome-form" hidden>
+            <input id="nome-input" type="text" maxlength="30" placeholder="Como posso te chamar?" autocomplete="off">
+          </form>
+        </div>
+        <button id="ajustes" class="redondo" title="Ajustes dos modos">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68 1.65 1.65 0 0 0 10 3.17V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.34.4.62.73.79.3.15.63.22.96.21H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </header>
+
+      <div id="modos" class="segmentado"></div>
+      <p id="modo-origem" class="modo-origem"></p>
+
+      <div class="grade-cards">
+        <button class="stat destaque" data-ir="resumo">
+          <span class="stat-icone">⏱️</span>
+          <span class="seta"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></svg></span>
+          <span class="stat-rotulo">Tempo hoje</span>
+          <strong id="stat-total">0s</strong>
+        </button>
+        <button class="stat" data-ir="resumo">
+          <span class="stat-icone">📈</span>
+          <span class="seta"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></svg></span>
+          <span id="pct-rotulo" class="stat-rotulo">Produtivo</span>
+          <strong id="pct">--</strong>
+        </button>
+        <button class="stat" data-ir="foco">
+          <span class="stat-icone">🍅</span>
+          <span class="seta"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></svg></span>
+          <span class="stat-rotulo">Sessões de foco</span>
+          <strong id="stat-sessoes">0</strong>
+        </button>
+        <button class="stat" data-ir="prazos">
+          <span class="stat-icone">💧</span>
+          <span class="seta"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></svg></span>
+          <span class="stat-rotulo">Água</span>
+          <strong id="stat-agua">0/8</strong>
+        </button>
+      </div>
+
+      <div class="card mascote-card">
+        <div id="mascote" class="mascote dormindo">
+          <svg viewBox="0 0 80 80" aria-hidden="true">
+            <g class="corpo">
+              <path class="rabo" d="M60 60 q14 -4 10 -18" />
+              <ellipse class="pele" cx="40" cy="58" rx="20" ry="14" />
+              <path class="pele" d="M24 30 L25 13 L35 22 Z" />
+              <path class="pele" d="M56 30 L55 13 L45 22 Z" />
+              <circle class="pele" cx="40" cy="34" r="17" />
+              <g class="olhos-abertos">
+                <circle cx="33" cy="33" r="2.6" />
+                <circle cx="47" cy="33" r="2.6" />
+              </g>
+              <g class="olhos-fechados">
+                <path d="M30 33 q3 3 6 0" />
+                <path d="M44 33 q3 3 6 0" />
+              </g>
+              <path class="boca" d="M37 40 q3 3 6 0" />
+              <circle class="bochecha" cx="28" cy="39" r="2.5" />
+              <circle class="bochecha" cx="52" cy="39" r="2.5" />
+            </g>
+            <text class="zzz" x="58" y="18">z</text>
+            <text class="zzz z2" x="66" y="10">z</text>
+            <text class="brilho" x="6" y="18">✦</text>
+            <text class="brilho b2" x="66" y="26">✦</text>
+          </svg>
+        </div>
+        <div class="mascote-texto">
+          <p id="fala">Zzz…</p>
+          <div class="linha"><span>Expediente</span><span id="exp-texto" class="suave"></span></div>
+          <div class="barra"><div id="exp-barra"></div></div>
+          <div class="linha"><span id="meta-rotulo">Meta</span><span id="meta-texto" class="suave"></span></div>
+          <div class="barra verde"><div id="meta-barra"></div></div>
+        </div>
+      </div>
+
+      <h2 class="secao">Visão geral</h2>
+      <div class="visao">
+        <div><span class="selo produtivo">✓</span><span><small>Produtivo</small><strong id="vg-produtivo">0s</strong></span></div>
+        <div><span id="vg-meio-selo" class="selo neutro">!</span><span><small id="vg-meio-rotulo">Neutro</small><strong id="vg-neutro">0s</strong></span></div>
+        <div><span class="selo distracao">×</span><span><small>Distração</small><strong id="vg-distracao">0s</strong></span></div>
+      </div>
+
+      <div class="secao-linha">
+        <h2 class="secao">Sites de hoje</h2>
+        <button id="ver-todos" class="link">Ver todos</button>
+      </div>
+      <ul id="lista" class="sites"></ul>
+      <p id="vazio" class="vazio" hidden>Ainda sem dados hoje. Navegue um pouco e volte aqui.</p>
+      <p class="dica">Toque na etiqueta do site pra marcar como produtivo, neutro ou distração neste modo. No lazer, sites de trabalho contam como trabalho.</p>
+
+      <h2 id="fav-titulo" class="secao">Favoritos</h2>
+      <div class="favoritos">
+        <button id="fav-add" class="chip chip-azul" title="Adicionar a aba atual aos favoritos deste modo">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+          Adicionar
+        </button>
+        <ul id="favoritos" class="favoritos-lista"></ul>
+      </div>
+    </section>
+
+    <!-- FOCO -->
+    <section id="aba-foco" class="aba" hidden>
+      <header class="titulo-tela"><h1>Foco</h1></header>
+
+      <div class="card foco">
+        <div class="foco-topo">
+          <div>
+            <h3 id="fase" class="fase">Pronta pra focar</h3>
+            <small id="foco-config" class="suave"></small>
+          </div>
+          <span id="foco-restante" class="destaque-laranja"></span>
+        </div>
+        <div id="presets" class="presets"></div>
+        <div class="anel">
+          <svg viewBox="0 0 120 120">
+            <defs>
+              <linearGradient id="grad-foco" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#4d8bff" />
+                <stop offset="1" stop-color="#1f5eff" />
+              </linearGradient>
+            </defs>
+            <circle class="trilho" cx="60" cy="60" r="52" />
+            <circle id="anel-progresso" class="progresso" cx="60" cy="60" r="52" />
+          </svg>
+          <div id="relogio" class="relogio">25:00</div>
+        </div>
+        <div id="ciclos" class="ciclos"></div>
+        <div id="botoes-foco" class="botoes"></div>
+      </div>
+
+      <div class="card opcao-widget">
+        <div class="opcao-linha">
+          <span class="stat-icone">⏱️</span>
+          <div class="opcao-texto">
+            <h3>Cronômetro flutuante</h3>
+            <small class="suave">Fica no canto das páginas contando o tempo</small>
+          </div>
+          <label class="chave" title="Mostrar o cronômetro nas páginas">
+            <input id="widget-ativo" type="checkbox">
+            <span></span>
+          </label>
+        </div>
+        <button id="abrir-janela" class="chip">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><rect x="12" y="11" width="7" height="7" rx="1"/></svg>
+          Abrir em mini janela
+        </button>
+      </div>
+
+      <div class="visao">
+        <div><span class="selo azul">🍅</span><span><small>Sessões</small><strong id="foco-sessoes">0</strong></span></div>
+        <div><span class="selo azul">⏱</span><span><small>Em foco</small><strong id="foco-tempo">0s</strong></span></div>
+        <div><span class="selo produtivo">✓</span><span><small>Produtivo</small><strong id="foco-pct">--</strong></span></div>
+      </div>
+
+      <h2 class="secao">Sites do foco</h2>
+      <div id="sessoes-chips" class="sessoes-chips"></div>
+      <p id="foco-frase" class="suave"></p>
+      <ul id="foco-sites" class="sites"></ul>
+    </section>
+
+    <!-- PRAZOS -->
+    <section id="aba-prazos" class="aba" hidden>
+      <header class="titulo-tela"><h1>Prazos</h1><span id="prazos-total" class="total-topo"></span></header>
+
+      <div class="card postit">
+        <div class="card-topo">
+          <span class="stat-icone">📝</span>
+          <div>
+            <h3>O que preciso fechar hoje</h3>
+            <small id="metas-contagem" class="suave"></small>
+          </div>
+        </div>
+        <ul id="metas" class="metas"></ul>
+        <form id="meta-form" class="form-linha">
+          <input id="meta-input" type="text" placeholder="Nova meta do dia…" maxlength="80" autocomplete="off">
+          <button type="submit" class="botao-mais" title="Adicionar">
+            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-topo">
+          <span class="stat-icone">💧</span>
+          <div>
+            <h3>Água</h3>
+            <small id="agua-texto" class="suave"></small>
+          </div>
+        </div>
+        <div id="copos" class="copos"></div>
+        <div class="botoes">
+          <button id="agua-menos" class="secundario">−</button>
+          <button id="agua-mais">+ 1 copo</button>
+        </div>
+      </div>
+
+      <h2 class="secao">Contagem regressiva</h2>
+      <ul id="contagens" class="contagens"></ul>
+      <p id="contagens-vazio" class="vazio" hidden>Nenhum prazo ainda. Adicione uma entrega ou prova.</p>
+      <form id="contagem-form" class="card form-coluna">
+        <input id="contagem-nome" type="text" placeholder="Ex.: Entrega do projeto" maxlength="50" required autocomplete="off">
+        <div class="form-linha">
+          <input id="contagem-data" type="date" required>
+          <button type="submit">Adicionar</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- RELATÓRIO DA SEMANA -->
+    <section id="aba-relatorio" class="aba" hidden>
+      <header class="rel-topo">
+        <button id="rel-anterior" class="redondo" title="Semana anterior">
+          <svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+        <div class="rel-titulo">
+          <small id="rel-rotulo">Relatório da semana</small>
+          <h1 id="rel-periodo">—</h1>
+        </div>
+        <button id="rel-proxima" class="redondo" title="Próxima semana">
+          <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+      </header>
+
+      <div class="card rel-hero">
+        <span id="rel-emoji" class="rel-emoji">📊</span>
+        <div class="rel-hero-texto">
+          <p id="rel-frase"></p>
+          <div class="rel-numero">
+            <strong id="rel-pct">--</strong>
+            <span id="rel-delta" class="delta"></span>
+          </div>
+          <small class="suave">do tempo de trabalho e estudo em sites produtivos</small>
+        </div>
+      </div>
+
+      <div id="rel-stats" class="rel-stats"></div>
+
+      <div class="card">
+        <div class="rel-card-titulo">
+          <h3>Tempo por dia</h3>
+          <button id="rel-ver-tabela" class="link">Ver tabela</button>
+        </div>
+        <ul id="rel-legenda" class="rel-legenda"></ul>
+        <div id="rel-grafico" class="rel-grafico" role="img" aria-label="Tempo por dia da semana, dividido por categoria"></div>
+        <div id="rel-tabela-caixa" class="rel-tabela" hidden>
+          <table id="rel-tabela"></table>
+        </div>
+      </div>
+
+      <h2 class="secao">Destaques</h2>
+      <ul id="rel-destaques" class="card rel-destaques"></ul>
+
+      <h2 class="secao">Sites mais usados</h2>
+      <ul id="rel-sites" class="sites"></ul>
+
+      <div class="secao-linha">
+        <h2 class="secao">Metas da semana</h2>
+        <span id="rel-metas-contagem" class="suave"></span>
+      </div>
+      <ul id="rel-metas" class="metas leitura card"></ul>
+    </section>
+
+    <!-- RESUMO (sub-tela, abre pelos cards) -->
+    <section id="aba-resumo" class="aba" hidden>
+      <header class="titulo-tela">
+        <button id="voltar" class="voltar" title="Voltar">
+          <svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+        </button>
+        <h1>Resumo</h1>
+        <span id="resumo-total" class="total-topo"></span>
+      </header>
+
+      <div id="resumo-meses" class="meses"></div>
+      <div id="resumo-dias" class="dias-chips"></div>
+
+      <button id="abrir-relatorio" class="chip relatorio-chip">📊 Ver relatório desta semana</button>
+
+      <div id="resumo-periodo" class="segmentado periodo">
+        <button data-periodo="dia" class="ativo">Dia</button>
+        <button data-periodo="semana">Semana</button>
+        <button data-periodo="mes">Mês</button>
+      </div>
+
+      <p id="resumo-frase" class="resumo-frase"></p>
+      <div id="resumo-grade" class="grade"></div>
+
+      <h2 id="resumo-metas-titulo" class="secao">Metas do dia</h2>
+      <ul id="resumo-metas" class="metas leitura card"></ul>
+
+      <h2 class="secao">Top sites</h2>
+      <ul id="resumo-sites" class="sites"></ul>
+    </section>
+  </main>
+
+  <div id="rel-dica" class="rel-dica" hidden></div>
+
+  <!-- Ações rápidas do botão + -->
+  <div id="fab-menu" class="fab-menu" hidden>
+    <button data-acao="foco"><span>🍅</span>Iniciar foco</button>
+    <button data-acao="meta"><span>📝</span>Nova meta</button>
+    <button data-acao="agua"><span>💧</span>+1 copo de água</button>
+    <button data-acao="prazo"><span>📅</span>Novo prazo</button>
+  </div>
+
+  <nav class="barra-nav">
+    <button data-aba="hoje">
+      <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>
+      Hoje
+    </button>
+    <button data-aba="foco">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>
+      Foco
+    </button>
+    <div class="fab-vaga">
+      <button id="fab" class="fab" title="Ações rápidas">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
+    <button data-aba="prazos">
+      <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+      Prazos
+    </button>
+    <button data-aba="relatorio">
+      <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+      Relatório
+    </button>
+  </nav>
+
+  <script src="../utils.js"></script>
+  <script src="popup.js"></script>
+  <script src="relatorio-aba.js"></script>
+</body>
+</html>

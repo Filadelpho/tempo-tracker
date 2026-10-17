@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Tempo Tracker · Ajustes</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <h1>Ajustes</h1>
+
+    <section>
+      <h2>Agenda automática</h2>
+      <p class="suave">
+        A extensão escolhe o modo sozinha pelo dia da semana. Trocar o modo no popup vale só até o fim do dia;
+        no dia seguinte volta pra agenda.
+      </p>
+      <label class="check linha-opcao"><input id="agenda-auto" type="checkbox"> Escolher o modo pelo dia da semana</label>
+      <div id="agenda-dias" class="dias-semana"></div>
+      <label class="check linha-opcao">
+        <input id="trabalho-no-lazer" type="checkbox">
+        Sites de trabalho usados num dia de lazer contam como trabalho
+      </label>
+      <p class="suave nota">Ex.: abrir o GitHub ou o Notion no sábado soma no tempo de Trabalho, não no de Lazer.</p>
+    </section>
+
+    <section>
+      <h2>Modos</h2>
+      <p class="suave">
+        Cada modo tem suas categorias de sites. O YouTube pode ser produtivo no Estudo e distração no Trabalho.
+        Um site por linha (ex.: <code>youtube.com</code> vale pra todos os subdomínios).
+      </p>
+      <div id="modos"></div>
+      <button id="novo-modo" class="secundario">+ Novo modo</button>
+    </section>
+
+    <section>
+      <h2>Geral</h2>
+      <div class="grade">
+        <label>Seu nome <input id="nome" type="text" maxlength="30" placeholder="Como o popup te chama"></label>
+        <label>Início do expediente <input id="exp-inicio" type="time"></label>
+        <label>Fim do expediente <input id="exp-fim" type="time"></label>
+        <label>Meta de água (copos) <input id="agua-meta" type="number" min="1" max="30"></label>
+        <label>Relatório semanal
+          <select id="relatorio">
+            <option value="segunda">Segunda às 9h (semana anterior)</option>
+            <option value="domingo">Domingo às 20h</option>
+            <option value="desligado">Desligado</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section>
+      <h2>Pomodoro</h2>
+      <div class="grade">
+        <label>Foco (min) <input id="pom-foco" type="number" min="1" max="180"></label>
+        <label>Pausa (min) <input id="pom-pausa" type="number" min="1" max="60"></label>
+        <label>Pausa longa (min) <input id="pom-longa" type="number" min="1" max="90"></label>
+        <label>Sessões até a pausa longa <input id="pom-ciclos" type="number" min="1" max="12"></label>
+      </div>
+    </section>
+
+    <div class="rodape">
+      <span id="status" class="suave"></span>
+      <button id="salvar">Salvar</button>
+    </div>
+  </main>
+
+  <template id="modelo-modo">
+    <div class="modo">
+      <div class="modo-topo">
+        <input class="emoji" maxlength="4" aria-label="Emoji">
+        <input class="nome" maxlength="20" aria-label="Nome do modo">
+        <label class="check"><input class="contar" type="checkbox"> conta na produtividade</label>
+        <button class="apagar icone" title="Apagar modo">×</button>
+      </div>
+      <div class="grade">
+        <label>Meta produtiva (min/dia) <input class="meta" type="number" min="0" max="1440"></label>
+      </div>
+      <div class="colunas">
+        <label>Produtivos <textarea class="produtivos" rows="6"></textarea></label>
+        <label>Distrações <textarea class="distracoes" rows="6"></textarea></label>
+        <label>Favoritos <small>(Título | https://…)</small><textarea class="favoritos" rows="6"></textarea></label>
+      </div>
+    </div>
+  </template>
+
+  <script src="../utils.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

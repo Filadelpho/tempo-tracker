@@ -1,0 +1,13 @@
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Pacotes gerados para a Chrome Web Store
+*.zip
+*.crx
+*.pem
+
+# Editores
+.vscode/
+.idea/
