@@ -69,7 +69,6 @@ function getDiario(data) {
   const salvo = estado.diario[data] || {};
   return {
     ...salvo,
-    agua: Number.isFinite(salvo.agua) ? salvo.agua : 0,
     metas: Array.isArray(salvo.metas) ? salvo.metas.filter((m) => m && typeof m.texto === "string") : []
   };
 }
@@ -160,8 +159,6 @@ $("fab-menu").addEventListener("click", (e) => {
   } else if (acao === "meta") {
     abrirAba("prazos");
     $("meta-input").focus();
-  } else if (acao === "agua") {
-    salvarDiario(hoje(), (d) => d.agua++);
   } else if (acao === "prazo") {
     abrirAba("prazos");
     $("contagem-nome").focus();
@@ -220,7 +217,7 @@ function renderHoje() {
 
   const diario = getDiario(dia);
   $("stat-sessoes").textContent = String(estado.sessoes[dia] || 0);
-  $("stat-agua").textContent = `${diario.agua}/${config.aguaMeta}`;
+  $("stat-metas").textContent = `${diario.metas.filter((m) => m.feita).length}/${diario.metas.length}`;
 
   // Tempo em sites de trabalho num dia de modo que não conta (ex.: GitHub no sábado)
   const trabalhoNoLazer = modo.contar ? 0 : prod.total;
@@ -716,7 +713,7 @@ function listarSites(lista, porModo, limite) {
   }
 }
 
-// ---------- Metas (post-it) e água ----------
+// ---------- Metas do dia (post-it) ----------
 
 function renderMetas() {
   const dia = getDiario(hoje());
@@ -744,19 +741,6 @@ function renderMetas() {
     li.append(label, apagar);
     lista.append(li);
   });
-
-  // Água
-  const meta = estado.config.aguaMeta;
-  $("agua-texto").textContent = `${dia.agua} de ${meta} copos${dia.agua >= meta ? " · meta batida 🎉" : ""}`;
-  const copos = $("copos");
-  copos.replaceChildren();
-  for (let i = 0; i < Math.max(meta, dia.agua); i++) {
-    const copo = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    copo.setAttribute("viewBox", "0 0 22 28");
-    copo.setAttribute("class", `copo ${i < dia.agua ? "cheio" : ""}`);
-    copo.innerHTML = '<path class="agua" d="M4.6 9 L17.4 9 L16 25 L6 25 Z"/><path d="M2 3 L20 3 L17.5 26 L4.5 26 Z"/>';
-    copos.append(copo);
-  }
 }
 
 $("meta-form").addEventListener("submit", (e) => {
@@ -767,8 +751,6 @@ $("meta-form").addEventListener("submit", (e) => {
   salvarDiario(hoje(), (d) => d.metas.push({ texto, feita: false }));
 });
 
-$("agua-mais").addEventListener("click", () => salvarDiario(hoje(), (d) => d.agua++));
-$("agua-menos").addEventListener("click", () => salvarDiario(hoje(), (d) => (d.agua = Math.max(0, d.agua - 1))));
 
 // ---------- Prazos: progresso e contagem regressiva ----------
 
@@ -883,8 +865,7 @@ function resumoDo(datas) {
     prod: resumirProdutividade(porModo, config),
     focoProd: resumirProdutividade(foco, config, { soContados: false }),
     sessoes: datas.reduce((s, d) => s + (estado.sessoes[d] || 0), 0),
-    agua: diarios.reduce((s, d) => s + d.agua, 0),
-    aguaMeta: config.aguaMeta * datas.length,
+    lazer: resumirDia(porModo, config).lazer,
     metas: diarios.flatMap((d) => d.metas)
   };
 }
@@ -906,7 +887,7 @@ function renderResumo() {
     [String(r.sessoes), (r.sessoes === 1 ? "sessão de foco" : "sessões de foco") + (r.focoProd.pct !== null ? ` · ${r.focoProd.pct}%` : "")],
     [formatarTempo(r.prod.distracao), "em distrações"],
     [`${metasFeitas}/${r.metas.length}`, "metas cumpridas"],
-    [`${r.agua}/${r.aguaMeta}`, "copos de água"]
+    [formatarTempo(r.lazer), "em lazer"]
   ];
 
   const grade = $("resumo-grade");
@@ -974,11 +955,11 @@ function renderDias() {
     const semana = capitalizar(d.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", ""));
     b.append(el("strong", "", String(i)), el("small", "", semana));
 
-    // Bolinhas: produtividade do dia e água batida
+    // Bolinha: produtividade do dia
     const prod = resumirProdutividade(porModoCompleto(data), estado.config);
     const pontos = el("span", "pontos");
     const corProd = prod.pct === null ? "" : prod.pct >= 65 ? "produtivo" : prod.pct >= 35 ? "neutro" : "distracao";
-    pontos.append(el("i", corProd), el("i", getDiario(data).agua >= estado.config.aguaMeta ? "agua" : ""));
+    pontos.append(el("i", corProd));
     b.append(pontos);
 
     b.addEventListener("click", () => {
@@ -1000,13 +981,12 @@ function rolarDiaAtivo() {
 }
 
 function fraseResumo(r, metasFeitas) {
-  if (r.total === 0 && r.metas.length === 0 && r.agua === 0) {
+  if (r.total === 0 && r.metas.length === 0) {
     return dataResumo === hoje() && periodoResumo === "dia" ? "O dia está só começando." : "Nada registrado nesse período.";
   }
-  const partes = [];
-  if (r.metas.length) partes.push(`cumpriu ${metasFeitas} de ${r.metas.length} metas`);
+  const partes = [`passou ${formatarTempo(r.total)} no navegador`];
   if (r.sessoes) partes.push(`fez ${r.sessoes} ${r.sessoes === 1 ? "sessão" : "sessões"} de foco`);
-  partes.push(`bebeu ${r.agua} ${r.agua === 1 ? "copo" : "copos"} de água`);
+  if (r.metas.length) partes.push(`cumpriu ${metasFeitas} de ${r.metas.length} metas`);
   const ultima = partes.pop();
   let frase = `Você ${partes.length ? partes.join(", ") + " e " : ""}${ultima}.`;
   if (r.prod.pct !== null) {

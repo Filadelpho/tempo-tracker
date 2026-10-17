@@ -54,10 +54,10 @@
           <strong id="stat-sessoes">0</strong>
         </button>
         <button class="stat" data-ir="prazos">
-          <span class="stat-icone">💧</span>
+          <span class="stat-icone">📝</span>
           <span class="seta"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></svg></span>
-          <span class="stat-rotulo">Água</span>
-          <strong id="stat-agua">0/8</strong>
+          <span class="stat-rotulo">Metas do dia</span>
+          <strong id="stat-metas">0/0</strong>
         </button>
       </div>
 
@@ -203,21 +203,6 @@
         </form>
       </div>
 
-      <div class="card">
-        <div class="card-topo">
-          <span class="stat-icone">💧</span>
-          <div>
-            <h3>Água</h3>
-            <small id="agua-texto" class="suave"></small>
-          </div>
-        </div>
-        <div id="copos" class="copos"></div>
-        <div class="botoes">
-          <button id="agua-menos" class="secundario">−</button>
-          <button id="agua-mais">+ 1 copo</button>
-        </div>
-      </div>
-
       <h2 class="secao">Contagem regressiva</h2>
       <ul id="contagens" class="contagens"></ul>
       <p id="contagens-vazio" class="vazio" hidden>Nenhum prazo ainda. Adicione uma entrega ou prova.</p>
@@ -322,7 +307,6 @@
   <div id="fab-menu" class="fab-menu" hidden>
     <button data-acao="foco"><span>🍅</span>Iniciar foco</button>
     <button data-acao="meta"><span>📝</span>Nova meta</button>
-    <button data-acao="agua"><span>💧</span>+1 copo de água</button>
     <button data-acao="prazo"><span>📅</span>Novo prazo</button>
   </div>
 

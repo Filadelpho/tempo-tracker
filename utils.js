@@ -104,7 +104,6 @@ const CONFIG_PADRAO = {
   },
   relatorio: "segunda", // relatório semanal: "segunda" (9h, semana anterior), "domingo" (20h) ou "desligado"
   modoManual: null, // { dia, modo }: troca feita no popup, vale só até o fim do dia
-  aguaMeta: 8,
   widget: true, // cronômetro flutuante nas páginas
   pomodoro: { foco: 25, pausa: 5, pausaLonga: 15, ciclos: 4 }
 };
@@ -172,7 +171,6 @@ function sanitizarConfig(s) {
     modoManual: manual && typeof manual === "object" && /^\d{4}-\d{2}-\d{2}$/.test(manual.dia) && texto(manual.modo, 40)
       ? { dia: manual.dia, modo: texto(manual.modo, 40) }
       : null,
-    aguaMeta: inteiro(s.aguaMeta, 1, 30),
     widget: booleano(s.widget),
     relatorio: ["segunda", "domingo", "desligado"].includes(s.relatorio) ? s.relatorio : undefined,
     pomodoro: semVazios({

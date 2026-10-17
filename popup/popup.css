@@ -572,13 +572,6 @@ li:hover .apagar, .prazo:hover .apagar { visibility: visible; }
 .metas.leitura .ok { background: var(--verde); }
 .metas.leitura .nao { background: var(--vermelho); }
 
-/* ---------- Água ---------- */
-
-.copos { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-.copo { width: 24px; height: 30px; }
-.copo path { stroke: var(--azul-claro); stroke-width: 1.5; fill: none; stroke-linejoin: round; }
-.copo .agua { fill: var(--azul-claro); stroke: none; opacity: 0; }
-.copo.cheio .agua { opacity: 1; }
 
 /* ---------- Prazos (como os cartões de transação) ---------- */
 
@@ -661,7 +654,6 @@ li:hover .apagar, .prazo:hover .apagar { visibility: visible; }
 .pontos .produtivo { background: var(--verde) !important; }
 .pontos .neutro { background: var(--laranja) !important; }
 .pontos .distracao { background: var(--vermelho) !important; }
-.pontos .agua { background: var(--azul-claro) !important; }
 
 .resumo-frase { color: var(--suave); margin: 4px 2px 12px; line-height: 1.45; }
 

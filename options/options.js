@@ -110,7 +110,6 @@ async function carregar() {
   $("nome").value = config.nome || "";
   $("exp-inicio").value = config.expediente.inicio;
   $("exp-fim").value = config.expediente.fim;
-  $("agua-meta").value = config.aguaMeta;
   $("relatorio").value = config.relatorio;
   $("pom-foco").value = config.pomodoro.foco;
   $("pom-pausa").value = config.pomodoro.pausa;
@@ -149,7 +148,6 @@ async function salvar() {
     },
     nome: $("nome").value.trim(),
     expediente: { inicio: $("exp-inicio").value || "09:00", fim: $("exp-fim").value || "18:00" },
-    aguaMeta: numero("agua-meta", 8),
     relatorio: $("relatorio").value,
     pomodoro: {
       foco: numero("pom-foco", 25),

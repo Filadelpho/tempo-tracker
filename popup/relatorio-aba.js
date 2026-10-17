@@ -50,8 +50,6 @@ function resumoDaSemana(inicio) {
     prod: resumirProdutividade(porModo, config),
     foco: resumirProdutividade(relJuntar(datas.map((d) => estado.foco[d])), config, { soContados: false }),
     sessoes: dias.reduce((s, d) => s + d.sessoes, 0),
-    agua: dias.reduce((s, d) => s + d.diario.agua, 0),
-    diasAgua: dias.filter((d) => d.diario.agua >= config.aguaMeta).length,
     metas: dias.flatMap((d, i) => d.diario.metas.map((m) => ({ ...m, dia: i }))),
     diasComUso: dias.filter((d) => d.dia.total > 0).length,
     trabalhoFimDeSemana: dias[5].prod.produtivo + dias[6].prod.produtivo
@@ -151,7 +149,7 @@ function relStats(semana, anterior) {
     ["🎮", "Lazer", formatarTempo(semana.total.lazer), el("span", "delta")],
     ["🍅", "Sessões de foco", String(semana.sessoes), el("span", "delta", semana.foco.total ? `${formatarTempo(semana.foco.total)} em foco` : "")],
     ["📝", "Metas", `${metasFeitas}/${semana.metas.length}`, el("span", "delta", "cumpridas")],
-    ["💧", "Água", `${semana.diasAgua}/7 dias`, el("span", "delta", `${semana.agua} copos`)],
+    ["🌴", "Trabalho no fds", formatarTempo(semana.trabalhoFimDeSemana), el("span", "delta", "sábado e domingo")],
     ["📅", "Média por dia", formatarTempo(Math.round(media)), el("span", "delta", `${semana.diasComUso} ${semana.diasComUso === 1 ? "dia" : "dias"} com uso`)]
   ];
   const caixa = $("rel-stats");
@@ -290,7 +288,6 @@ function relDestaques(semana) {
   } else if (semana.dias[5].dia.lazer + semana.dias[6].dia.lazer > 0) {
     itens.push(["🌴", "Fim de semana de descanso", "Quase nada de trabalho no sábado e domingo."]);
   }
-  if (semana.agua) itens.push(["💧", `Meta de água em ${semana.diasAgua} de 7 dias`, `${semana.agua} copos na semana`]);
 
   const lista = $("rel-destaques");
   lista.replaceChildren();
