@@ -181,6 +181,7 @@ function humorMascote(prod, metaBatida, modo, trabalhoNoLazer, lazer) {
   if (!modo.contar) {
     if (lazer.limite > 0 && lazer.tempo > lazer.limite) return ["sentado", `Passou do seu limite de lazer (${formatarTempo(lazer.limite)}). Que tal uma pausa da tela? 👀`];
     if (trabalhoNoLazer >= 30 * 60) return ["sentado", `Já trabalhou ${formatarTempo(trabalhoNoLazer)} hoje. Bora descansar? 😌`];
+    if (origemDoModo(estado.config) === "fora") return ["dormindo", "Expediente encerrado. Hora de descansar! 🌙"];
     return ["dormindo", "Dia de descanso. Aproveita! 😌"];
   }
   if (metaBatida) return ["comemorando", "Meta do modo batida! Tô orgulhoso 🎉"];
@@ -227,10 +228,14 @@ function renderHoje() {
   $("mascote").className = `mascote ${humor}`;
   $("fala").textContent = fala;
 
-  const exp = modo.contar ? fracaoExpediente() : 0;
-  $("exp-texto").textContent = modo.contar
-    ? `${Math.round(exp * 100)}% · ${config.expediente.inicio}–${config.expediente.fim}`
-    : "Hoje é folga 🌴";
+  // Dia de trabalho (pela agenda) mostra o expediente, mesmo à noite no modo lazer
+  const diaDeTrabalho = getModo(config, config.agenda.dias[new Date().getDay()]).contar;
+  const exp = diaDeTrabalho || modo.contar ? fracaoExpediente() : 0;
+  $("exp-texto").textContent = !(diaDeTrabalho || modo.contar)
+    ? "Hoje é folga 🌴"
+    : exp >= 1
+      ? `Encerrado 🌙 · ${config.expediente.inicio}–${config.expediente.fim}`
+      : `${Math.round(exp * 100)}% · ${config.expediente.inicio}–${config.expediente.fim}`;
   $("exp-barra").style.width = `${exp * 100}%`;
 
   const barraMeta = $("meta-barra");
@@ -388,7 +393,7 @@ function renderModos() {
 function trocarModo(id) {
   const { config } = estado;
   if (config.agenda.automatico) {
-    const doDia = config.agenda.dias[new Date().getDay()];
+    const doDia = modoAtualId({ ...config, modoManual: null }); // o que a agenda escolheria agora
     config.modoManual = id === doDia ? null : { dia: hoje(), modo: id };
   } else {
     config.modoAtivo = id;
@@ -403,7 +408,13 @@ function renderOrigemModo(modo) {
   const diaSemana = DIAS_SEMANA[new Date().getDay()];
   const origem = origemDoModo(config);
 
-  if (origem === "automatico") {
+  if (origem === "fora") {
+    const agora = new Date().getHours() * 60 + new Date().getMinutes();
+    const antes = agora < minutosDoDia(config.expediente.inicio);
+    caixa.append(el("span", "", antes
+      ? `🌙 Antes do expediente: ${modo.nome} até ${config.expediente.inicio}`
+      : `🌙 Expediente encerrado: ${modo.nome} até amanhã`));
+  } else if (origem === "automatico") {
     caixa.append(el("span", "", `🤖 Automático: ${diaSemana} é dia de ${modo.nome}`));
   } else if (origem === "manual") {
     caixa.append(el("span", "", `✋ ${modo.nome} ligado por você hoje`));

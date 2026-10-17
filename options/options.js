@@ -82,6 +82,20 @@ function renderAgenda(dias) {
   const modos = modosNaTela();
   const caixa = $("agenda-dias");
   caixa.replaceChildren();
+
+  // Seletor do modo fora do expediente (mantém o escolhido)
+  const seletorFora = $("modo-fora");
+  const escolhido = seletorFora.value || seletorFora.dataset.valor;
+  seletorFora.replaceChildren();
+  for (const modo of modos) {
+    const opcao = document.createElement("option");
+    opcao.value = modo.id;
+    opcao.textContent = `${modo.emoji} ${modo.nome}`;
+    seletorFora.append(opcao);
+  }
+  seletorFora.value = modos.some((m) => m.id === escolhido) ? escolhido : modos[modos.length - 1].id;
+  seletorFora.disabled = !$("agenda-auto").checked;
+  $("fora-expediente").disabled = !$("agenda-auto").checked;
   for (const dia of ORDEM_DIAS) {
     const label = document.createElement("label");
     if (dia === 0 || dia === 6) label.className = "fim-de-semana";
@@ -112,6 +126,8 @@ async function carregar() {
   config.modos.forEach(adicionarModo);
   $("agenda-auto").checked = config.agenda.automatico;
   $("trabalho-no-lazer").checked = config.agenda.trabalhoNoLazer;
+  $("fora-expediente").checked = config.agenda.foraDoExpediente;
+  $("modo-fora").dataset.valor = config.agenda.modoFora;
   renderAgenda(config.agenda.dias);
   $("nome").value = config.nome || "";
   $("exp-inicio").value = config.expediente.inicio;
@@ -148,6 +164,8 @@ async function salvar() {
     agenda: {
       automatico: $("agenda-auto").checked,
       trabalhoNoLazer: $("trabalho-no-lazer").checked,
+      foraDoExpediente: $("fora-expediente").checked,
+      modoFora: modos.some((m) => m.id === $("modo-fora").value) ? $("modo-fora").value : modos[0].id,
       dias: [0, 1, 2, 3, 4, 5, 6].map((dia) => {
         const valor = document.querySelector(`#agenda-dias select[data-dia="${dia}"]`).value;
         return modos.some((m) => m.id === valor) ? valor : modos[0].id;

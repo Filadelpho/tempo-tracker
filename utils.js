@@ -101,7 +101,9 @@ const CONFIG_PADRAO = {
   agenda: {
     automatico: true,
     dias: ["lazer", "trabalho", "trabalho", "trabalho", "trabalho", "trabalho", "lazer"],
-    trabalhoNoLazer: true // site de trabalho usado num dia de lazer conta como trabalho
+    trabalhoNoLazer: true, // site de trabalho usado num dia de lazer conta como trabalho
+    foraDoExpediente: true, // nos dias de trabalho, antes e depois do expediente vira lazer
+    modoFora: "lazer" // modo usado fora do expediente
   },
   relatorio: "segunda", // relatório semanal: "segunda" (9h, semana anterior), "domingo" (20h) ou "desligado"
   modoManual: null, // { dia, modo }: troca feita no popup, vale só até o fim do dia
@@ -168,7 +170,9 @@ function sanitizarConfig(s) {
     agenda: semVazios({
       automatico: booleano(agenda.automatico),
       dias: dias && dias.length === 7 ? dias : undefined,
-      trabalhoNoLazer: booleano(agenda.trabalhoNoLazer)
+      trabalhoNoLazer: booleano(agenda.trabalhoNoLazer),
+      foraDoExpediente: booleano(agenda.foraDoExpediente),
+      modoFora: texto(agenda.modoFora, 40)
     }),
     modoManual: manual && typeof manual === "object" && /^\d{4}-\d{2}-\d{2}$/.test(manual.dia) && texto(manual.modo, 40)
       ? { dia: manual.dia, modo: texto(manual.modo, 40) }
@@ -231,9 +235,26 @@ function getModo(config, id = modoAtualId(config)) {
 }
 
 // Qual modo vale agora: troca manual de hoje > agenda do dia da semana > modo fixo
+// Fora do horário de expediente (antes do início ou depois do fim)
+function foraDoHorario(config, quando = new Date()) {
+  const minutos = quando.getHours() * 60 + quando.getMinutes();
+  return minutos < minutosDoDia(config.expediente.inicio) || minutos >= minutosDoDia(config.expediente.fim);
+}
+
+// Num dia de trabalho, fora do expediente, a agenda troca pro modo de lazer
+function lazerForaDoExpediente(config, quando = new Date()) {
+  const { agenda } = config;
+  if (!agenda.automatico || !agenda.foraDoExpediente) return false;
+  const doDia = config.modos.find((m) => m.id === agenda.dias[quando.getDay()]);
+  const fora = config.modos.find((m) => m.id === agenda.modoFora);
+  return Boolean(doDia && doDia.contar && fora && fora.id !== doDia.id && foraDoHorario(config, quando));
+}
+
+// Qual modo vale agora: troca manual de hoje > fora do expediente > agenda do dia > modo fixo
 function modoAtualId(config, quando = new Date()) {
   const manual = config.modoManual;
   if (manual && manual.dia === dataLocal(quando)) return manual.modo;
+  if (lazerForaDoExpediente(config, quando)) return config.agenda.modoFora;
   if (config.agenda.automatico) return config.agenda.dias[quando.getDay()] || config.modoAtivo;
   return config.modoAtivo;
 }
@@ -241,6 +262,7 @@ function modoAtualId(config, quando = new Date()) {
 function origemDoModo(config, quando = new Date()) {
   const manual = config.modoManual;
   if (manual && manual.dia === dataLocal(quando)) return "manual";
+  if (lazerForaDoExpediente(config, quando)) return "fora";
   return config.agenda.automatico ? "automatico" : "fixo";
 }
 

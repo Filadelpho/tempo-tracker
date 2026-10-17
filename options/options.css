@@ -85,7 +85,7 @@ input[type="time"] { color-scheme: dark; }
 input[type="checkbox"] { accent-color: var(--azul); }
 h1 { font-size: 28px; letter-spacing: -0.02em; }
 
-.linha-opcao { margin: 10px 0; color: var(--texto); font-size: 14px; }
+.linha-opcao { margin: 10px 0; color: var(--texto); font-size: 14px; flex-wrap: wrap; }
 .nota { font-size: 12px; margin: -4px 0 0 24px !important; }
 .dias-semana { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin: 12px 0; }
 .dias-semana label { background: var(--card); border: 1px solid var(--borda); border-radius: 14px; padding: 10px; }
