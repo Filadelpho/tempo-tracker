@@ -87,6 +87,7 @@ const CONFIG_PADRAO = {
       emoji: "🎮",
       contar: false, // tempo de lazer não pesa na produtividade
       metaMin: 0,
+      limiteMin: 0, // limite diário em minutos (0 = sem limite)
       produtivos: [],
       distracoes: [],
       favoritos: [
@@ -105,7 +106,6 @@ const CONFIG_PADRAO = {
   relatorio: "segunda", // relatório semanal: "segunda" (9h, semana anterior), "domingo" (20h) ou "desligado"
   modoManual: null, // { dia, modo }: troca feita no popup, vale só até o fim do dia
   widget: true, // cronômetro flutuante nas páginas
-  limiteLazerMin: 0, // limite diário de lazer em minutos (0 = sem limite)
   pomodoro: { foco: 25, pausa: 5, pausaLonga: 15, ciclos: 4 }
 };
 
@@ -142,6 +142,7 @@ function sanitizarModo(m) {
     emoji: texto(m.emoji, 8) || "⭐",
     contar: booleano(m.contar) ?? true,
     metaMin: inteiro(m.metaMin, 0, 1440) ?? 0,
+    limiteMin: inteiro(m.limiteMin, 0, 1440) ?? 0,
     produtivos: lista(m.produtivos, 300, dominio) || [],
     distracoes: lista(m.distracoes, 300, dominio) || [],
     favoritos: lista(m.favoritos, 30, (f) => {
@@ -173,7 +174,6 @@ function sanitizarConfig(s) {
       ? { dia: manual.dia, modo: texto(manual.modo, 40) }
       : null,
     widget: booleano(s.widget),
-    limiteLazerMin: inteiro(s.limiteLazerMin, 0, 1440),
     relatorio: ["segunda", "domingo", "desligado"].includes(s.relatorio) ? s.relatorio : undefined,
     pomodoro: semVazios({
       foco: inteiro(pomodoro.foco, 1, 180),
@@ -186,7 +186,7 @@ function sanitizarConfig(s) {
 
 function mesclarConfig(salva = {}) {
   const config = structuredClone(CONFIG_PADRAO);
-  salva = sanitizarConfig(migrarConfig(structuredClone(salva || {})));
+  salva = sanitizarConfig(migrarLimite(migrarConfig(structuredClone(salva || {}))));
   return {
     ...config,
     ...salva,
@@ -205,6 +205,17 @@ function migrarConfig(salva) {
     estudo.produtivos = [...new Set([...estudo.produtivos.filter((d) => d !== "youtube.com"), ...ESTUDO_SITES])];
   }
   salva.versao = 2;
+  return salva;
+}
+
+// O limite de lazer era um só (limiteLazerMin); agora cada modo de lazer tem o seu (limiteMin)
+function migrarLimite(salva) {
+  if (Number.isInteger(salva.limiteLazerMin) && salva.limiteLazerMin > 0 && Array.isArray(salva.modos)) {
+    for (const m of salva.modos) {
+      if (m && m.contar === false && !m.limiteMin) m.limiteMin = salva.limiteLazerMin;
+    }
+  }
+  delete salva.limiteLazerMin;
   return salva;
 }
 

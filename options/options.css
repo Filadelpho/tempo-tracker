@@ -100,3 +100,8 @@ select {
 }
 select:disabled { opacity: 0.5; }
 .dias-semana select { width: 100%; margin-top: 6px; }
+
+/* Modo que não conta na produtividade (lazer): só favoritos e limite */
+.modo:not(.nao-conta) .so-lazer { display: none; }
+.modo.nao-conta .so-conta { display: none; }
+.nota-lazer { margin: -4px 0 12px; font-size: 13px; color: var(--suave); }

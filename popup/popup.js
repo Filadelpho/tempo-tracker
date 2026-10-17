@@ -222,7 +222,7 @@ function renderHoje() {
 
   // Tempo em sites de trabalho num dia de modo que não conta (ex.: GitHub no sábado)
   const trabalhoNoLazer = modo.contar ? 0 : prod.total;
-  const lazer = { tempo: resumirDia(porModoHoje, config).lazer, limite: (config.limiteLazerMin || 0) * 60 };
+  const lazer = { tempo: resumirDia(porModoHoje, config).lazer, limite: (modo.limiteMin || 0) * 60 };
   const [humor, fala] = humorMascote(prod, metaBatida, modo, trabalhoNoLazer, lazer);
   $("mascote").className = `mascote ${humor}`;
   $("fala").textContent = fala;

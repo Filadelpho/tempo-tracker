@@ -42,6 +42,12 @@ function adicionarModo(modo) {
   no.querySelector(".nome").value = modo.nome;
   no.querySelector(".contar").checked = modo.contar !== false;
   no.querySelector(".meta").value = modo.metaMin || 0;
+  no.querySelector(".limite").value = modo.limiteMin || 0;
+  // Modo que não conta (lazer): esconde listas e meta, mostra o limite
+  const contar = no.querySelector(".contar");
+  const atualizarTipo = () => no.classList.toggle("nao-conta", !contar.checked);
+  contar.addEventListener("change", atualizarTipo);
+  atualizarTipo();
   no.querySelector(".produtivos").value = (modo.produtivos || []).join("\n");
   no.querySelector(".distracoes").value = (modo.distracoes || []).join("\n");
   no.querySelector(".favoritos").value = (modo.favoritos || []).map((f) => `${f.titulo} | ${f.url}`).join("\n");
@@ -108,7 +114,6 @@ async function carregar() {
   $("trabalho-no-lazer").checked = config.agenda.trabalhoNoLazer;
   renderAgenda(config.agenda.dias);
   $("nome").value = config.nome || "";
-  $("limite-lazer").value = config.limiteLazerMin || 0;
   $("exp-inicio").value = config.expediente.inicio;
   $("exp-fim").value = config.expediente.fim;
   $("relatorio").value = config.relatorio;
@@ -130,6 +135,7 @@ async function salvar() {
     nome: no.querySelector(".nome").value.trim() || "Sem nome",
     contar: no.querySelector(".contar").checked,
     metaMin: Math.max(0, parseInt(no.querySelector(".meta").value, 10) || 0),
+    limiteMin: Math.max(0, Math.min(1440, parseInt(no.querySelector(".limite").value, 10) || 0)),
     produtivos: dominios(no.querySelector(".produtivos").value),
     distracoes: dominios(no.querySelector(".distracoes").value),
     favoritos: lerFavoritos(no.querySelector(".favoritos").value)
@@ -148,7 +154,6 @@ async function salvar() {
       })
     },
     nome: $("nome").value.trim(),
-    limiteLazerMin: Math.max(0, Math.min(1440, parseInt($("limite-lazer").value, 10) || 0)),
     expediente: { inicio: $("exp-inicio").value || "09:00", fim: $("exp-fim").value || "18:00" },
     relatorio: $("relatorio").value,
     pomodoro: {
