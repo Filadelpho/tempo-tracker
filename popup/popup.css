@@ -270,11 +270,14 @@ svg { display: block; }
   transition: width 0.4s;
 }
 .barra.verde > div { background: var(--verde); }
+.barra.roxa > div { background: #8b5cf6; }
+.barra.vermelha > div { background: var(--vermelho); }
 
 /* ---------- Mascote ---------- */
 
 .mascote-card { display: flex; align-items: center; gap: 14px; }
 .mascote-texto { flex: 1; min-width: 0; }
+.mascote-texto .linha span:first-child { white-space: nowrap; }
 #fala { font-weight: 500; font-size: 13px; }
 
 .mascote { width: 84px; height: 84px; flex-shrink: 0; }

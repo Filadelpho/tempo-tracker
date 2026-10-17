@@ -176,9 +176,10 @@ function fracaoExpediente(agora = new Date()) {
   return Math.max(0, Math.min(1, (minutos - ini) / (fi - ini)));
 }
 
-function humorMascote(prod, metaBatida, modo, trabalhoNoLazer) {
-  // Dia de descanso: o gatinho relaxa, mas avisa se você trabalhou
+function humorMascote(prod, metaBatida, modo, trabalhoNoLazer, lazer) {
+  // Dia de descanso: o gatinho relaxa, mas avisa se passou do limite ou se você trabalhou
   if (!modo.contar) {
+    if (lazer.limite > 0 && lazer.tempo > lazer.limite) return ["sentado", `Passou do seu limite de lazer (${formatarTempo(lazer.limite)}). Que tal uma pausa da tela? 👀`];
     if (trabalhoNoLazer >= 30 * 60) return ["sentado", `Já trabalhou ${formatarTempo(trabalhoNoLazer)} hoje. Bora descansar? 😌`];
     return ["dormindo", "Dia de descanso. Aproveita! 😌"];
   }
@@ -221,7 +222,8 @@ function renderHoje() {
 
   // Tempo em sites de trabalho num dia de modo que não conta (ex.: GitHub no sábado)
   const trabalhoNoLazer = modo.contar ? 0 : prod.total;
-  const [humor, fala] = humorMascote(prod, metaBatida, modo, trabalhoNoLazer);
+  const lazer = { tempo: resumirDia(porModoHoje, config).lazer, limite: (config.limiteLazerMin || 0) * 60 };
+  const [humor, fala] = humorMascote(prod, metaBatida, modo, trabalhoNoLazer, lazer);
   $("mascote").className = `mascote ${humor}`;
   $("fala").textContent = fala;
 
@@ -231,13 +233,28 @@ function renderHoje() {
     : "Hoje é folga 🌴";
   $("exp-barra").style.width = `${exp * 100}%`;
 
-  $("meta-rotulo").textContent = `Meta ${modo.nome}`;
-  if (metaSeg > 0) {
+  const barraMeta = $("meta-barra");
+  barraMeta.parentElement.className = "barra verde";
+  if (!modo.contar) {
+    // Dia de lazer: mostra quanto de lazer já foi (e o limite, se tiver)
+    $("meta-rotulo").textContent = "Lazer hoje";
+    if (lazer.limite > 0) {
+      const passou = lazer.tempo > lazer.limite;
+      $("meta-texto").textContent = `${formatarTempo(lazer.tempo)} / ${formatarTempo(lazer.limite)}`;
+      barraMeta.style.width = `${Math.min(1, lazer.tempo / lazer.limite) * 100}%`;
+      barraMeta.parentElement.className = passou ? "barra vermelha" : "barra roxa";
+    } else {
+      $("meta-texto").textContent = `${formatarTempo(lazer.tempo)} · sem limite`;
+      barraMeta.style.width = "0%";
+    }
+  } else if (metaSeg > 0) {
+    $("meta-rotulo").textContent = `Meta ${modo.nome}`;
     $("meta-texto").textContent = `${formatarTempo(prodModo.produtivo)} / ${formatarTempo(metaSeg)}`;
     $("meta-barra").style.width = `${Math.min(1, prodModo.produtivo / metaSeg) * 100}%`;
   } else {
+    $("meta-rotulo").textContent = `Meta ${modo.nome}`;
     $("meta-texto").textContent = `${formatarTempo(prodModo.produtivo)} · sem meta`;
-    $("meta-barra").style.width = "0%";
+    barraMeta.style.width = "0%";
   }
 
   renderSites(dia, modo);

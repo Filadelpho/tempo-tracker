@@ -12,6 +12,7 @@ Extensão para Chrome que mostra quanto tempo você passa em cada site e ajuda a
 - **Cronômetro flutuante:** fica no canto das páginas enquanto o foco roda. Dá para arrastar, pausar e destacar numa janela Picture-in-Picture, que fica por cima de tudo.
 - **Mascote:** um gatinho que reage à sua produtividade do dia.
 - **Prazos:** metas do dia (post-it) e contagem regressiva para entregas e provas.
+- **Limite de lazer:** nos dias de lazer, o popup mostra quanto tempo de lazer já foi e avisa se você passar do limite que definir nos ajustes.
 - **Relatório semanal:** % produtivo comparado com a semana anterior, gráfico por dia, destaques, sites mais usados e metas. Chega uma notificação toda segunda às 9h (ou domingo às 20h, se você preferir).
 
 ## Como instalar

@@ -108,6 +108,7 @@ async function carregar() {
   $("trabalho-no-lazer").checked = config.agenda.trabalhoNoLazer;
   renderAgenda(config.agenda.dias);
   $("nome").value = config.nome || "";
+  $("limite-lazer").value = config.limiteLazerMin || 0;
   $("exp-inicio").value = config.expediente.inicio;
   $("exp-fim").value = config.expediente.fim;
   $("relatorio").value = config.relatorio;
@@ -147,6 +148,7 @@ async function salvar() {
       })
     },
     nome: $("nome").value.trim(),
+    limiteLazerMin: Math.max(0, Math.min(1440, parseInt($("limite-lazer").value, 10) || 0)),
     expediente: { inicio: $("exp-inicio").value || "09:00", fim: $("exp-fim").value || "18:00" },
     relatorio: $("relatorio").value,
     pomodoro: {

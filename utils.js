@@ -105,6 +105,7 @@ const CONFIG_PADRAO = {
   relatorio: "segunda", // relatório semanal: "segunda" (9h, semana anterior), "domingo" (20h) ou "desligado"
   modoManual: null, // { dia, modo }: troca feita no popup, vale só até o fim do dia
   widget: true, // cronômetro flutuante nas páginas
+  limiteLazerMin: 0, // limite diário de lazer em minutos (0 = sem limite)
   pomodoro: { foco: 25, pausa: 5, pausaLonga: 15, ciclos: 4 }
 };
 
@@ -172,6 +173,7 @@ function sanitizarConfig(s) {
       ? { dia: manual.dia, modo: texto(manual.modo, 40) }
       : null,
     widget: booleano(s.widget),
+    limiteLazerMin: inteiro(s.limiteLazerMin, 0, 1440),
     relatorio: ["segunda", "domingo", "desligado"].includes(s.relatorio) ? s.relatorio : undefined,
     pomodoro: semVazios({
       foco: inteiro(pomodoro.foco, 1, 180),
