@@ -9,6 +9,7 @@ Extensão para Chrome que mostra quanto tempo você passa em cada site e ajuda a
 - **Agenda automática:** de segunda a sexta é Trabalho e no fim de semana é Lazer. Nos dias de trabalho, antes e depois do expediente, o modo vira Lazer sozinho. Se você abrir um site de trabalho num dia de lazer, o tempo conta como Trabalho. O Estudo é opcional e você liga no popup.
 - **Visão geral ao vivo:** mostra o tempo produtivo, neutro, de distração e de lazer do dia, atualizado a cada segundo.
 - **Pomodoro:** ciclos de foco e pausa, com som, notificação e badge no ícone. Cada sessão guarda os sites usados nela.
+- **Aviso de distração:** se você abrir um site de distração durante o foco ou no horário de expediente, aparece um aviso no meio da página (depois de alguns segundos de tolerância), com as opções de voltar ao foco, liberar por 5 minutos ou marcar que o site não é distração.
 - **Cronômetro flutuante:** fica no canto das páginas enquanto o foco roda. Dá para arrastar, pausar e destacar numa janela Picture-in-Picture, que fica por cima de tudo.
 - **Mascote:** um gatinho que reage à sua produtividade do dia.
 - **Prazos:** metas do dia (post-it) e contagem regressiva para entregas e provas, com mensagem e cor que mudam conforme a data se aproxima (de "Com folga" até "É hoje!").

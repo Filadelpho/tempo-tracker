@@ -29,8 +29,8 @@ function getDominio(url) {
   }
 }
 
-// Descobre qual site está sendo usado agora (ou null se não está usando o Chrome)
-async function getDominioAtual() {
+// Descobre a aba e o site em uso agora (ou null se não está usando o Chrome)
+async function getAbaAtual() {
   const estado = await chrome.idle.queryState(60);
   if (estado !== "active") return null;
 
@@ -38,7 +38,8 @@ async function getDominioAtual() {
   if (!janela.focused) return null;
 
   const [aba] = await chrome.tabs.query({ active: true, windowId: janela.id });
-  return aba && aba.url ? getDominio(aba.url) : null;
+  const dominio = aba && aba.url ? getDominio(aba.url) : null;
+  return dominio ? { abaId: aba.id, dominio } : null;
 }
 
 // somar(obj, ["2026-10-17", "trabalho", "notion.so"], 30)
@@ -100,7 +101,8 @@ async function tick() {
     if (segundos > 0) await somarTempo(atual, segundos);
   }
 
-  const dominio = await getDominioAtual();
+  const aba = await getAbaAtual();
+  const dominio = aba ? aba.dominio : null;
   const config = await getConfig();
   const pomodoro = await getPomodoro();
   const emFoco = pomodoro.fase === "foco" && Boolean(pomodoro.fim); // foco pausado não conta
@@ -109,6 +111,72 @@ async function tick() {
     atual: { dominio, inicio: agora, modo: modoDoSite(config, dominio).id, foco: emFoco, sessao: emFoco ? pomodoro.sessao : null }
   });
   await atualizarBadge(pomodoro);
+  await verificarDistracao(config, pomodoro, aba);
+}
+
+// ---------- Aviso de distração ----------
+// Site de distração (no modo atual) + foco rodando ou horário de expediente = aviso na página,
+// depois de alguns segundos de tolerância. Uma vez por visita: só volta a avisar se a página
+// recarregar, se você trocar de site ou quando acabar a liberação de 5 minutos.
+
+const LIBERAR_MIN = 5;
+let alertaAgendado = null; // { chave: "abaId|dominio", timer }
+
+function motivoDoAlerta(config, pomodoro, dominio) {
+  if (!dominio) return null;
+  const modo = getModo(config);
+  if (classificar(dominio, modo) !== "distracao") return null;
+  if (config.alertas.foco && pomodoro.fase === "foco" && pomodoro.fim) return "foco";
+  if (config.alertas.expediente && modo.contar && !foraDoHorario(config)) return "expediente";
+  return null;
+}
+
+async function estaLiberado(dominio) {
+  const { liberados = {} } = await chrome.storage.session.get("liberados");
+  return (liberados[dominio] || 0) > Date.now();
+}
+
+async function verificarDistracao(config, pomodoro, aba) {
+  const chave = aba ? `${aba.abaId}|${aba.dominio}` : null;
+  if (alertaAgendado && alertaAgendado.chave === chave) return; // já agendado ou já avisado nesta visita
+  if (alertaAgendado) clearTimeout(alertaAgendado.timer);
+  alertaAgendado = null;
+  if (!chave || !motivoDoAlerta(config, pomodoro, aba.dominio) || (await estaLiberado(aba.dominio))) return;
+  const espera = config.alertas.toleranciaSeg * 1000;
+  alertaAgendado = { chave, timer: setTimeout(() => dispararAlerta(aba).catch(console.error), espera) };
+}
+
+async function dispararAlerta(aba) {
+  const config = await getConfig();
+  const pomodoro = await getPomodoro();
+  const agora = await getAbaAtual();
+  // Mudou de aba/site durante a tolerância, ou a situação mudou: não avisa
+  const mesma = agora && agora.abaId === aba.abaId && agora.dominio === aba.dominio;
+  const motivo = mesma && motivoDoAlerta(config, pomodoro, aba.dominio);
+  if (!motivo || (await estaLiberado(aba.dominio))) {
+    alertaAgendado = null;
+    return;
+  }
+  const aviso = {
+    tipo: "alerta-distracao",
+    dominio: aba.dominio,
+    modo: getModo(config).nome,
+    motivo,
+    minutos: pomodoro.fim ? Math.ceil((pomodoro.fim - Date.now()) / 60000) : 0,
+    fimExpediente: config.expediente.fim
+  };
+  try {
+    await chrome.tabs.sendMessage(aba.abaId, aviso);
+  } catch {
+    // Página onde a extensão não roda: vira notificação do sistema
+    chrome.notifications.create("distracao", {
+      type: "basic",
+      iconUrl: "icons/icon128.png",
+      title: motivo === "foco" ? "Ei, você está em foco!" : "Ei, ainda é horário de trabalho!",
+      message: `${aba.dominio} é distração no modo ${aviso.modo}.`,
+      priority: 1
+    });
+  }
 }
 
 // Fila: evita que dois eventos seguidos contem o mesmo tempo duas vezes
@@ -317,6 +385,15 @@ async function atualizarBadge(p) {
 chrome.tabs.onActivated.addListener(agendarTick);
 chrome.tabs.onUpdated.addListener((tabId, info) => {
   if (info.url) agendarTick();
+  // Página terminou de carregar (inclusive recarregada): confere a distração na hora,
+  // e avisa de novo se já tinha avisado nessa aba
+  if (info.status === "complete") {
+    if (alertaAgendado && alertaAgendado.chave.startsWith(`${tabId}|`)) {
+      clearTimeout(alertaAgendado.timer);
+      alertaAgendado = null;
+    }
+    agendarTick();
+  }
 });
 chrome.windows.onFocusChanged.addListener(agendarTick);
 chrome.idle.onStateChanged.addListener(agendarTick);
@@ -384,6 +461,27 @@ chrome.runtime.onMessage.addListener((msg, remetente, responder) => {
     case "widget-ocultar":
       if (typeof msg.chave !== "string" || msg.chave.length > 100) return;
       return responderDepois(chrome.storage.local.set({ widgetOculto: msg.chave }));
+    case "alerta-liberar":
+    case "alerta-nao-distracao": {
+      // Só vale para o site da própria aba que mandou
+      const dominioDaAba = remetente.tab && remetente.tab.url ? getDominio(remetente.tab.url) : null;
+      if (!dominioDaAba || msg.dominio !== dominioDaAba) return;
+      alertaAgendado = null;
+      if (msg.tipo === "alerta-liberar") {
+        return responderDepois(chrome.storage.session.get("liberados").then(({ liberados = {} }) => {
+          liberados[dominioDaAba] = Date.now() + LIBERAR_MIN * 60000;
+          return chrome.storage.session.set({ liberados });
+        }));
+      }
+      return responderDepois(getConfig().then((config) => {
+        const modo = getModo(config);
+        modo.distracoes = modo.distracoes.filter((d) => !(dominioDaAba === d || dominioDaAba.endsWith("." + d)));
+        return chrome.storage.local.set({ config });
+      }));
+    }
+    case "alerta-fechar-aba":
+      if (!remetente.tab) return;
+      return responderDepois(chrome.tabs.remove(remetente.tab.id));
     case "widget-posicao": {
       const direita = numeroEntre(msg.direita, 0, 10000);
       const baixo = numeroEntre(msg.baixo, 0, 10000);

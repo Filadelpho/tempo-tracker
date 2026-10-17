@@ -108,6 +108,8 @@ const CONFIG_PADRAO = {
   relatorio: "segunda", // relatório semanal: "segunda" (9h, semana anterior), "domingo" (20h) ou "desligado"
   modoManual: null, // { dia, modo }: troca feita no popup, vale só até o fim do dia
   widget: true, // cronômetro flutuante nas páginas
+  // Aviso quando você abre um site de distração no foco ou no horário de expediente
+  alertas: { foco: true, expediente: true, toleranciaSeg: 10 },
   pomodoro: { foco: 25, pausa: 5, pausaLonga: 15, ciclos: 4 }
 };
 
@@ -159,6 +161,7 @@ function sanitizarConfig(s) {
   const agenda = s.agenda && typeof s.agenda === "object" ? s.agenda : {};
   const pomodoro = s.pomodoro && typeof s.pomodoro === "object" ? s.pomodoro : {};
   const expediente = s.expediente && typeof s.expediente === "object" ? s.expediente : {};
+  const alertas = s.alertas && typeof s.alertas === "object" ? s.alertas : {};
   const manual = s.modoManual;
   const dias = lista(agenda.dias, 7, (d) => texto(d, 40));
   return semVazios({
@@ -178,6 +181,11 @@ function sanitizarConfig(s) {
       ? { dia: manual.dia, modo: texto(manual.modo, 40) }
       : null,
     widget: booleano(s.widget),
+    alertas: semVazios({
+      foco: booleano(alertas.foco),
+      expediente: booleano(alertas.expediente),
+      toleranciaSeg: inteiro(alertas.toleranciaSeg, 0, 300)
+    }),
     relatorio: ["segunda", "domingo", "desligado"].includes(s.relatorio) ? s.relatorio : undefined,
     pomodoro: semVazios({
       foco: inteiro(pomodoro.foco, 1, 180),
@@ -196,6 +204,7 @@ function mesclarConfig(salva = {}) {
     ...salva,
     expediente: { ...config.expediente, ...salva.expediente },
     agenda: { ...config.agenda, ...salva.agenda },
+    alertas: { ...config.alertas, ...salva.alertas },
     pomodoro: { ...config.pomodoro, ...salva.pomodoro },
     modos: salva.modos && salva.modos.length ? salva.modos : config.modos
   };

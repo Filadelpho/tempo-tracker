@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Tempo Tracker",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Mostra quanto tempo você passa em cada site, pra fechar o dia mais produtiva.",
   "minimum_chrome_version": "116",
   "permissions": [
@@ -30,7 +30,8 @@
       "js": [
         "utils.js",
         "widget/cronometro.js",
-        "widget/widget.js"
+        "widget/widget.js",
+        "widget/alerta.js"
       ],
       "run_at": "document_idle"
     }

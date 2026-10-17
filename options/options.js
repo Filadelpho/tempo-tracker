@@ -133,6 +133,9 @@ async function carregar() {
   $("exp-inicio").value = config.expediente.inicio;
   $("exp-fim").value = config.expediente.fim;
   $("relatorio").value = config.relatorio;
+  $("alerta-foco").checked = config.alertas.foco;
+  $("alerta-expediente").checked = config.alertas.expediente;
+  $("alerta-tolerancia").value = config.alertas.toleranciaSeg;
   $("pom-foco").value = config.pomodoro.foco;
   $("pom-pausa").value = config.pomodoro.pausa;
   $("pom-longa").value = config.pomodoro.pausaLonga;
@@ -174,6 +177,11 @@ async function salvar() {
     nome: $("nome").value.trim(),
     expediente: { inicio: $("exp-inicio").value || "09:00", fim: $("exp-fim").value || "18:00" },
     relatorio: $("relatorio").value,
+    alertas: {
+      foco: $("alerta-foco").checked,
+      expediente: $("alerta-expediente").checked,
+      toleranciaSeg: Math.max(0, Math.min(300, parseInt($("alerta-tolerancia").value, 10) || 0))
+    },
     pomodoro: {
       foco: numero("pom-foco", 25),
       pausa: numero("pom-pausa", 5),
