@@ -776,6 +776,18 @@ function renderPrazos() {
   renderContagens(new Date(agora.getFullYear(), agora.getMonth(), agora.getDate()));
 }
 
+// Quanto mais perto da data, mais forte a mensagem e a cor
+function urgenciaDoPrazo(dias) {
+  if (dias < 0) return { status: "Atrasado", classe: "atrasado" };
+  if (dias === 0) return { status: "É hoje!", classe: "hoje" };
+  if (dias === 1) return { status: "Amanhã!", classe: "amanha" };
+  if (dias <= 3) return { status: "Reta final", classe: "reta-final" };
+  if (dias <= 7) return { status: "Esta semana", classe: "semana" };
+  if (dias <= 14) return { status: "Em breve", classe: "breve" };
+  if (dias <= 30) return { status: "Dá tempo", classe: "da-tempo" };
+  return { status: "Com folga", classe: "folga" };
+}
+
 function renderContagens(meiaNoite) {
   const lista = $("contagens");
   lista.replaceChildren();
@@ -796,11 +808,10 @@ function renderContagens(meiaNoite) {
     info.append(el("div", "prazo-nome", c.nome), el("div", "prazo-data", `${data} • ${semana}`));
 
     const lado = el("div", "prazo-dias");
-    let numero, status, classe;
-    if (dias < 0) { numero = `${-dias}d`; status = "Passou"; classe = "passou"; }
-    else if (dias === 0) { numero = "Hoje"; status = "Urgente"; classe = "urgente"; }
-    else { numero = `${dias} ${dias === 1 ? "dia" : "dias"}`; status = dias <= 3 ? "Urgente" : "No prazo"; classe = dias <= 3 ? "urgente" : "ok"; }
-    lado.append(el("strong", "", numero), el("span", `status ${classe}`, status));
+    const { status, classe } = urgenciaDoPrazo(dias);
+    li.classList.add(`prazo-${classe}`);
+    const numero = dias < 0 ? `${-dias}d` : dias === 0 ? "Hoje" : `${dias} ${dias === 1 ? "dia" : "dias"}`;
+    lado.append(el("strong", "", numero), el("span", "status", status));
     topo.append(info, lado);
 
     const rodape = el("div", "prazo-rodape");

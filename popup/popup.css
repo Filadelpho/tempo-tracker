@@ -911,3 +911,17 @@ li:hover .apagar, .prazo:hover .apagar { visibility: visible; }
 .sessao-chip.interrompida .sessao-icone { color: var(--suave); }
 .sessao-chip.ativo .sessao-icone { color: #fff; }
 @keyframes crono-piscar { 50% { opacity: 0.3; } }
+
+/* ---------- Prazos: cor por proximidade ---------- */
+
+.prazo { border-left: 4px solid var(--prazo-cor, var(--borda)); }
+.prazo .prazo-dias strong, .prazo .prazo-dias .status { color: var(--prazo-cor); }
+.prazo-folga { --prazo-cor: #22c55e; }
+.prazo-da-tempo { --prazo-cor: #4ade80; }
+.prazo-breve { --prazo-cor: #facc15; }
+.prazo-semana { --prazo-cor: #f59e0b; }
+.prazo-reta-final { --prazo-cor: #f97316; }
+.prazo-amanha { --prazo-cor: #ef4444; }
+.prazo-hoje { --prazo-cor: #ef4444; background: linear-gradient(90deg, rgba(239, 68, 68, 0.14), var(--card) 60%); }
+.prazo-hoje .prazo-dias .status { animation: crono-piscar 1.4s infinite; }
+.prazo-atrasado { --prazo-cor: #b91c1c; opacity: 0.8; }
