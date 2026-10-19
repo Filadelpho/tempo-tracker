@@ -353,8 +353,9 @@ function porModoCompleto(dia) {
   for (const sites of Object.values(base)) {
     for (const [dominio, s] of Object.entries(sites)) porSite[dominio] = (porSite[dominio] || 0) + s;
   }
+  // Sem hora registrada: supõe o meio da manhã, dentro do expediente e fora do almoço
   const quando = lerData(dia);
-  quando.setHours(12);
+  quando.setHours(10);
   for (const [chave, s] of Object.entries(estado.uso[dia] || {})) {
     const dominio = chave.replace(/^site:/, "");
     const falta = s - (porSite[dominio] || 0);
