@@ -131,6 +131,9 @@ async function carregar() {
   renderAgenda(config.agenda.dias);
   $("nome").value = config.nome || "";
   $("exp-inicio").value = config.expediente.inicio;
+  $("almoco-ativo").checked = config.almoco.ativo;
+  $("almoco-inicio").value = config.almoco.inicio;
+  $("almoco-fim").value = config.almoco.fim;
   $("exp-fim").value = config.expediente.fim;
   $("relatorio").value = config.relatorio;
   $("alerta-foco").checked = config.alertas.foco;
@@ -176,6 +179,11 @@ async function salvar() {
     },
     nome: $("nome").value.trim(),
     expediente: { inicio: $("exp-inicio").value || "09:00", fim: $("exp-fim").value || "18:00" },
+    almoco: {
+      ativo: $("almoco-ativo").checked,
+      inicio: $("almoco-inicio").value || "12:00",
+      fim: $("almoco-fim").value || "13:00"
+    },
     relatorio: $("relatorio").value,
     alertas: {
       foco: $("alerta-foco").checked,

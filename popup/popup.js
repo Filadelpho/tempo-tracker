@@ -162,8 +162,29 @@ $("fab-menu").addEventListener("click", (e) => {
   } else if (acao === "prazo") {
     abrirAba("prazos");
     $("contagem-nome").focus();
+  } else if (acao === "almoco") {
+    if (emAlmoco(estado.config)) encerrarAlmoco();
+    else comecarAlmoco();
   }
 });
+
+// ---------- Almoço ----------
+
+function comecarAlmoco() {
+  const { config } = estado;
+  config.almocoAte = Date.now() + duracaoAlmoco(config) * 60000;
+  salvarConfig();
+}
+
+// Encerra o almoço agora (o do botão e, se for o caso, o do horário fixo de hoje)
+function encerrarAlmoco() {
+  const { config } = estado;
+  config.almocoAte = null;
+  const agora = new Date();
+  const minutos = agora.getHours() * 60 + agora.getMinutes();
+  if (minutos >= minutosDoDia(config.almoco.inicio) && minutos < minutosDoDia(config.almoco.fim)) config.almocoPulado = hoje();
+  salvarConfig();
+}
 
 // ---------- Hoje ----------
 
@@ -181,6 +202,7 @@ function humorMascote(prod, metaBatida, modo, trabalhoNoLazer, lazer) {
   if (!modo.contar) {
     if (lazer.limite > 0 && lazer.tempo > lazer.limite) return ["sentado", `Passou do seu limite de lazer (${formatarTempo(lazer.limite)}). Que tal uma pausa da tela? 👀`];
     if (trabalhoNoLazer >= 30 * 60) return ["sentado", `Já trabalhou ${formatarTempo(trabalhoNoLazer)} hoje. Bora descansar? 😌`];
+    if (origemDoModo(estado.config) === "almoco") return ["sentado", `Bom almoço! 🍽️ Volto a cuidar do foco às ${fimDoAlmoco(estado.config)}.`];
     if (origemDoModo(estado.config) === "fora") return ["dormindo", "Expediente encerrado. Hora de descansar! 🌙"];
     return ["dormindo", "Dia de descanso. Aproveita! 😌"];
   }
@@ -233,7 +255,9 @@ function renderHoje() {
   const exp = diaDeTrabalho || modo.contar ? fracaoExpediente() : 0;
   $("exp-texto").textContent = !(diaDeTrabalho || modo.contar)
     ? "Hoje é folga 🌴"
-    : exp >= 1
+    : emAlmoco(config)
+      ? `Almoço 🍽️ · até ${fimDoAlmoco(config)}`
+      : exp >= 1
       ? `Encerrado 🌙 · ${config.expediente.inicio}–${config.expediente.fim}`
       : `${Math.round(exp * 100)}% · ${config.expediente.inicio}–${config.expediente.fim}`;
   $("exp-barra").style.width = `${exp * 100}%`;
@@ -407,8 +431,14 @@ function renderOrigemModo(modo) {
   caixa.replaceChildren();
   const diaSemana = DIAS_SEMANA[new Date().getDay()];
   const origem = origemDoModo(config);
+  $("fab-almoco-texto").textContent = origem === "almoco" ? "Encerrar almoço" : "Começar almoço";
 
-  if (origem === "fora") {
+  if (origem === "almoco") {
+    caixa.append(el("span", "", `🍽️ Almoço até ${fimDoAlmoco(config)} · sites liberados`));
+    const encerrar = el("button", "link", "Encerrar");
+    encerrar.addEventListener("click", encerrarAlmoco);
+    caixa.append(encerrar);
+  } else if (origem === "fora") {
     const agora = new Date().getHours() * 60 + new Date().getMinutes();
     const antes = agora < minutosDoDia(config.expediente.inicio);
     caixa.append(el("span", "", antes

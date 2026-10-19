@@ -107,6 +107,10 @@ const CONFIG_PADRAO = {
   },
   relatorio: "segunda", // relatório semanal: "segunda" (9h, semana anterior), "domingo" (20h) ou "desligado"
   modoManual: null, // { dia, modo }: troca feita no popup, vale só até o fim do dia
+  // Almoço: nos dias de trabalho, nesse horário o modo vira lazer (Netflix e YouTube liberados)
+  almoco: { ativo: true, inicio: "12:00", fim: "13:00" },
+  almocoAte: null, // almoço começado pelo botão: vale até esse horário (ms)
+  almocoPulado: null, // dia (AAAA-MM-DD) em que o almoço do horário fixo foi encerrado antes
   widget: true, // cronômetro flutuante nas páginas
   // Aviso quando você abre um site de distração no foco ou no horário de expediente
   alertas: { foco: true, expediente: true, toleranciaSeg: 10 },
@@ -162,6 +166,7 @@ function sanitizarConfig(s) {
   const pomodoro = s.pomodoro && typeof s.pomodoro === "object" ? s.pomodoro : {};
   const expediente = s.expediente && typeof s.expediente === "object" ? s.expediente : {};
   const alertas = s.alertas && typeof s.alertas === "object" ? s.alertas : {};
+  const almoco = s.almoco && typeof s.almoco === "object" ? s.almoco : {};
   const manual = s.modoManual;
   const dias = lista(agenda.dias, 7, (d) => texto(d, 40));
   return semVazios({
@@ -181,6 +186,9 @@ function sanitizarConfig(s) {
       ? { dia: manual.dia, modo: texto(manual.modo, 40) }
       : null,
     widget: booleano(s.widget),
+    almoco: semVazios({ ativo: booleano(almoco.ativo), inicio: hora(almoco.inicio), fim: hora(almoco.fim) }),
+    almocoAte: Number.isInteger(s.almocoAte) && s.almocoAte > 0 ? s.almocoAte : null,
+    almocoPulado: typeof s.almocoPulado === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s.almocoPulado) ? s.almocoPulado : null,
     alertas: semVazios({
       foco: booleano(alertas.foco),
       expediente: booleano(alertas.expediente),
@@ -205,6 +213,7 @@ function mesclarConfig(salva = {}) {
     expediente: { ...config.expediente, ...salva.expediente },
     agenda: { ...config.agenda, ...salva.agenda },
     alertas: { ...config.alertas, ...salva.alertas },
+    almoco: { ...config.almoco, ...salva.almoco },
     pomodoro: { ...config.pomodoro, ...salva.pomodoro },
     modos: salva.modos && salva.modos.length ? salva.modos : config.modos
   };
@@ -259,8 +268,40 @@ function lazerForaDoExpediente(config, quando = new Date()) {
   return Boolean(doDia && doDia.contar && fora && fora.id !== doDia.id && foraDoHorario(config, quando));
 }
 
-// Qual modo vale agora: troca manual de hoje > fora do expediente > agenda do dia > modo fixo
+// Duração do almoço configurado, em minutos (usada também pelo botão "Começar almoço")
+function duracaoAlmoco(config) {
+  const minutos = minutosDoDia(config.almoco.fim) - minutosDoDia(config.almoco.inicio);
+  return minutos > 0 ? minutos : 60;
+}
+
+// Está no almoço? Pelo botão (até almocoAte) ou pelo horário fixo num dia de trabalho
+function emAlmoco(config, quando = new Date()) {
+  if (config.almocoAte && config.almocoAte > quando.getTime()) return true;
+  const { almoco, agenda } = config;
+  if (!almoco.ativo || config.almocoPulado === dataLocal(quando)) return false;
+  const doDia = config.modos.find((m) => m.id === (agenda.automatico ? agenda.dias[quando.getDay()] : config.modoAtivo));
+  if (!doDia || !doDia.contar) return false;
+  const minutos = quando.getHours() * 60 + quando.getMinutes();
+  return minutos >= minutosDoDia(almoco.inicio) && minutos < minutosDoDia(almoco.fim);
+}
+
+// Horário (HH:MM) em que o almoço de agora acaba
+function fimDoAlmoco(config, quando = new Date()) {
+  if (config.almocoAte && config.almocoAte > quando.getTime()) {
+    return new Date(config.almocoAte).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  }
+  return config.almoco.fim;
+}
+
+// Modo usado no almoço: o mesmo de fora do expediente (Lazer, se existir)
+function modoDoAlmoco(config) {
+  const escolhido = config.modos.find((m) => m.id === config.agenda.modoFora && !m.contar);
+  return (escolhido || config.modos.find((m) => !m.contar) || getModo(config, config.agenda.modoFora)).id;
+}
+
+// Qual modo vale agora: almoço > troca manual de hoje > fora do expediente > agenda do dia > modo fixo
 function modoAtualId(config, quando = new Date()) {
+  if (emAlmoco(config, quando)) return modoDoAlmoco(config);
   const manual = config.modoManual;
   if (manual && manual.dia === dataLocal(quando)) return manual.modo;
   if (lazerForaDoExpediente(config, quando)) return config.agenda.modoFora;
@@ -269,6 +310,7 @@ function modoAtualId(config, quando = new Date()) {
 }
 
 function origemDoModo(config, quando = new Date()) {
+  if (emAlmoco(config, quando)) return "almoco";
   const manual = config.modoManual;
   if (manual && manual.dia === dataLocal(quando)) return "manual";
   if (lazerForaDoExpediente(config, quando)) return "fora";
