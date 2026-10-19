@@ -7,7 +7,7 @@ Extensão para Chrome que mostra quanto tempo você passa em cada site e ajuda a
 - **Rastreio por site:** conta o tempo na aba ativa, só quando você está usando o Chrome. Para de contar depois de 60s sem mexer.
 - **Modos (Trabalho, Estudo, Lazer):** cada modo tem seus sites produtivos, distrações, meta diária e favoritos. O mesmo site pode ser produtivo num modo e distração em outro.
 - **Agenda automática:** de segunda a sexta é Trabalho e no fim de semana é Lazer. Nos dias de trabalho, antes e depois do expediente, o modo vira Lazer sozinho. Se você abrir um site de trabalho num dia de lazer, o tempo conta como Trabalho. O Estudo é opcional e você liga no popup.
-- **Horário de almoço:** nos dias de trabalho, no horário de almoço (padrão 12:00–13:00), o modo vira Lazer e sites como Netflix e YouTube ficam liberados. Também dá para começar e encerrar o almoço pelo botão + do popup.
+- **Horário de almoço:** nos dias de trabalho, no horário de almoço (padrão 12:00–13:00), o modo continua Trabalho, mas sites como Netflix e YouTube ficam liberados: o tempo vai para a categoria "Almoço", que aparece separada e não pesa na produtividade. Também dá para começar e encerrar o almoço pelo botão + do popup.
 - **Visão geral ao vivo:** mostra o tempo produtivo, neutro, de distração e de lazer do dia, atualizado a cada segundo.
 - **Pomodoro:** ciclos de foco e pausa, com som, notificação e badge no ícone. Cada sessão guarda os sites usados nela.
 - **Aviso de distração:** se você abrir um site de distração durante o foco ou no horário de expediente, aparece um aviso no meio da página (depois de alguns segundos de tolerância), com as opções de voltar ao foco, liberar por 5 minutos ou marcar que o site não é distração.

@@ -89,6 +89,14 @@ function encerrarSessao(focos, id, status) {
 
 // Fecha o trecho anterior e abre um novo.
 // Cada trecho guarda o modo e se era sessão de foco no momento em que começou.
+// No almoço, o tempo vai pra categoria "almoço" (não pesa na produtividade).
+// Sites produtivos continuam contando como trabalho.
+function categoriaDoTrecho(config, dominio) {
+  const modo = modoDoSite(config, dominio);
+  if (dominio && emAlmoco(config) && classificar(dominio, modo) !== "produtivo") return CATEGORIA_ALMOCO;
+  return modo.id;
+}
+
 async function tick() {
   const agora = Date.now();
   const { atual } = await chrome.storage.session.get("atual");
@@ -108,7 +116,7 @@ async function tick() {
   const emFoco = pomodoro.fase === "foco" && Boolean(pomodoro.fim); // foco pausado não conta
 
   await chrome.storage.session.set({
-    atual: { dominio, inicio: agora, modo: modoDoSite(config, dominio).id, foco: emFoco, sessao: emFoco ? pomodoro.sessao : null }
+    atual: { dominio, inicio: agora, modo: categoriaDoTrecho(config, dominio), foco: emFoco, sessao: emFoco ? pomodoro.sessao : null }
   });
   await atualizarBadge(pomodoro);
   await verificarDistracao(config, pomodoro, aba);
@@ -127,7 +135,7 @@ function motivoDoAlerta(config, pomodoro, dominio) {
   const modo = getModo(config);
   if (classificar(dominio, modo) !== "distracao") return null;
   if (config.alertas.foco && pomodoro.fase === "foco" && pomodoro.fim) return "foco";
-  if (config.alertas.expediente && modo.contar && !foraDoHorario(config)) return "expediente";
+  if (config.alertas.expediente && modo.contar && !foraDoHorario(config) && !emAlmoco(config)) return "expediente";
   return null;
 }
 

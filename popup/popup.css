@@ -419,6 +419,8 @@ svg { display: block; }
 .status.neutro { color: var(--suave); }
 .status.distracao { color: var(--laranja); }
 .status.lazer { color: #a78bfa; }
+.status.almoco { color: #f472b6; }
+.site-meio .barra > div.almoco { background: #db2777; }
 .site-meio .barra > div.lazer { background: #8b5cf6; }
 button.status:hover { text-decoration: underline; }
 
@@ -843,6 +845,7 @@ li:hover .apagar, .prazo:hover .apagar { visibility: visible; }
 .rel-neutro { background: #4f7cc2; }
 .rel-distracao { background: #d97706; }
 .rel-lazer { background: #8b5cf6; }
+.rel-almoco { background: #db2777; }
 
 .rel-card-titulo { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
 .rel-card-titulo .link { font-size: 13px; }
@@ -925,3 +928,12 @@ li:hover .apagar, .prazo:hover .apagar { visibility: visible; }
 .prazo-hoje { --prazo-cor: #ef4444; background: linear-gradient(90deg, rgba(239, 68, 68, 0.14), var(--card) 60%); }
 .prazo-hoje .prazo-dias .status { animation: crono-piscar 1.4s infinite; }
 .prazo-atrasado { --prazo-cor: #b91c1c; opacity: 0.8; }
+
+/* ---------- Almoço na visão geral ---------- */
+
+.vg-almoco {
+  margin: 8px 4px 0;
+  font-size: 12px;
+  color: var(--suave);
+}
+.vg-almoco strong { color: #f472b6; }

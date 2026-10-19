@@ -5,7 +5,8 @@ const REL_CATEGORIAS = [
   { id: "produtivo", nome: "Produtivo" },
   { id: "neutro", nome: "Neutro" },
   { id: "distracao", nome: "Distração" },
-  { id: "lazer", nome: "Lazer" }
+  { id: "lazer", nome: "Lazer" },
+  { id: "almoco", nome: "Almoço" }
 ];
 const REL_DIAS_CURTOS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 const REL_DIAS_LONGOS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
@@ -39,7 +40,7 @@ function resumoDaSemana(inicio) {
     };
   });
   const porModo = relJuntar(datas.map(porModoCompleto));
-  const total = { produtivo: 0, neutro: 0, distracao: 0, lazer: 0, total: 0 };
+  const total = { produtivo: 0, neutro: 0, distracao: 0, lazer: 0, almoco: 0, total: 0 };
   for (const d of dias) for (const k in total) total[k] += d.dia[k];
 
   return {
@@ -248,7 +249,7 @@ function relTabela(semana) {
   const tabela = $("rel-tabela");
   tabela.replaceChildren();
   const cabeca = el("tr");
-  for (const t of ["Dia", "Prod.", "Neutro", "Distr.", "Lazer", "Total"]) cabeca.append(el("th", "", t));
+  for (const t of ["Dia", "Prod.", "Neutro", "Distr.", "Lazer", "Alm.", "Total"]) cabeca.append(el("th", "", t));
   tabela.append(cabeca);
   semana.dias.forEach((d, i) => {
     const tr = el("tr");

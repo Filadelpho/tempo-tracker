@@ -293,15 +293,9 @@ function fimDoAlmoco(config, quando = new Date()) {
   return config.almoco.fim;
 }
 
-// Modo usado no almoço: o mesmo de fora do expediente (Lazer, se existir)
-function modoDoAlmoco(config) {
-  const escolhido = config.modos.find((m) => m.id === config.agenda.modoFora && !m.contar);
-  return (escolhido || config.modos.find((m) => !m.contar) || getModo(config, config.agenda.modoFora)).id;
-}
-
-// Qual modo vale agora: almoço > troca manual de hoje > fora do expediente > agenda do dia > modo fixo
+// Qual modo vale agora: troca manual de hoje > fora do expediente > agenda do dia > modo fixo.
+// O almoço não troca o modo: continua Trabalho, e o tempo vai pra categoria "almoço".
 function modoAtualId(config, quando = new Date()) {
-  if (emAlmoco(config, quando)) return modoDoAlmoco(config);
   const manual = config.modoManual;
   if (manual && manual.dia === dataLocal(quando)) return manual.modo;
   if (lazerForaDoExpediente(config, quando)) return config.agenda.modoFora;
@@ -333,6 +327,7 @@ function modoDoSite(config, dominio, quando = new Date()) {
 
 // "m.youtube.com" bate com "youtube.com"
 function bate(dominio, lista = []) {
+  if (!dominio) return false;
   return lista.some((d) => dominio === d || dominio.endsWith("." + d));
 }
 
@@ -360,12 +355,16 @@ function resumirProdutividade(porModo = {}, config, { soContados = true } = {}) 
 }
 
 // Divide o dia todo: produtivo/neutro/distração nos modos que contam e lazer nos que não contam
+// "almoco" é uma categoria à parte: tempo do horário de almoço, que não pesa na produtividade
+const CATEGORIA_ALMOCO = "almoco";
+
 function resumirDia(porModo = {}, config) {
-  const r = { produtivo: 0, neutro: 0, distracao: 0, lazer: 0, total: 0 };
+  const r = { produtivo: 0, neutro: 0, distracao: 0, lazer: 0, almoco: 0, total: 0 };
   for (const [id, sites] of Object.entries(porModo)) {
     const modo = config.modos.find((m) => m.id === id);
     for (const [dominio, segundos] of Object.entries(sites)) {
-      if (modo && !modo.contar) r.lazer += segundos;
+      if (id === CATEGORIA_ALMOCO) r.almoco += segundos;
+      else if (modo && !modo.contar) r.lazer += segundos;
       else r[classificar(dominio, modo)] += segundos;
       r.total += segundos;
     }

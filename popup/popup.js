@@ -8,7 +8,7 @@ let abaAtual = "hoje";
 let abaAnterior = "hoje";
 let verTodosSites = false;
 
-const ROTULOS = { produtivo: "Produtivo", neutro: "Neutro", distracao: "Distração", lazer: "Lazer" };
+const ROTULOS = { produtivo: "Produtivo", neutro: "Neutro", distracao: "Distração", lazer: "Lazer", almoco: "Almoço" };
 const PROXIMA_CLASSE = { neutro: "produtivo", produtivo: "distracao", distracao: "neutro" };
 const PRESETS_FOCO = [15, 25, 50];
 
@@ -198,11 +198,11 @@ function fracaoExpediente(agora = new Date()) {
 }
 
 function humorMascote(prod, metaBatida, modo, trabalhoNoLazer, lazer) {
+  if (origemDoModo(estado.config) === "almoco") return ["sentado", `Bom almoço! 🍽️ Volto a cuidar do foco às ${fimDoAlmoco(estado.config)}.`];
   // Dia de descanso: o gatinho relaxa, mas avisa se passou do limite ou se você trabalhou
   if (!modo.contar) {
     if (lazer.limite > 0 && lazer.tempo > lazer.limite) return ["sentado", `Passou do seu limite de lazer (${formatarTempo(lazer.limite)}). Que tal uma pausa da tela? 👀`];
     if (trabalhoNoLazer >= 30 * 60) return ["sentado", `Já trabalhou ${formatarTempo(trabalhoNoLazer)} hoje. Bora descansar? 😌`];
-    if (origemDoModo(estado.config) === "almoco") return ["sentado", `Bom almoço! 🍽️ Volto a cuidar do foco às ${fimDoAlmoco(estado.config)}.`];
     if (origemDoModo(estado.config) === "fora") return ["dormindo", "Expediente encerrado. Hora de descansar! 🌙"];
     return ["dormindo", "Dia de descanso. Aproveita! 😌"];
   }
@@ -256,7 +256,7 @@ function renderHoje() {
   $("exp-texto").textContent = !(diaDeTrabalho || modo.contar)
     ? "Hoje é folga 🌴"
     : emAlmoco(config)
-      ? `Almoço 🍽️ · até ${fimDoAlmoco(config)}`
+      ? `🍽️ até ${fimDoAlmoco(config)}`
       : exp >= 1
       ? `Encerrado 🌙 · ${config.expediente.inicio}–${config.expediente.fim}`
       : `${Math.round(exp * 100)}% · ${config.expediente.inicio}–${config.expediente.fim}`;
@@ -400,6 +400,10 @@ function renderVisaoGeral() {
   $("vg-produtivo").textContent = formatarTempo(dia.produtivo);
   $("vg-neutro").textContent = formatarTempo(mostrarLazer ? dia.lazer + dia.neutro : dia.neutro);
   $("vg-distracao").textContent = formatarTempo(dia.distracao);
+
+  // Almoço: fica à parte, só pra mostrar quanto tempo foi
+  $("vg-almoco").hidden = dia.almoco === 0 && origemDoModo(config) !== "almoco";
+  $("vg-almoco-tempo").textContent = formatarTempo(dia.almoco);
 }
 
 function renderModos() {
@@ -499,9 +503,14 @@ function renderSites(dia, modo) {
   if (itens.length === 0) return;
 
   const maior = itens[0].segundos;
+  // Tempo de cada site que foi no horário de almoço
+  const almocoHoje = porModoAoVivo()[CATEGORIA_ALMOCO] || {};
   for (const item of itens.slice(0, verTodosSites ? 25 : 5)) {
     const modoSite = modoDoSite(estado.config, item.nome);
-    if (!modoSite.contar) {
+    if ((almocoHoje[item.nome] || 0) >= item.segundos / 2) {
+      // Usado quase todo no almoço: não pesa na produtividade
+      lista.append(linhaSite(item, maior, "almoco"));
+    } else if (!modoSite.contar) {
       // Dia de lazer: o site não pesa na produtividade
       lista.append(linhaSite(item, maior, "lazer"));
     } else if (modoSite.id !== modo.id) {
@@ -767,7 +776,7 @@ function listarSites(lista, porModo, limite) {
     // Classificação do modo onde o site foi mais usado
     const [modoId] = Object.entries(site.modos).sort((a, b) => b[1] - a[1])[0];
     const modo = getModo(estado.config, modoId);
-    const classe = modo.contar ? classificar(site.nome, modo) : "lazer";
+    const classe = modoId === CATEGORIA_ALMOCO ? "almoco" : modo.contar ? classificar(site.nome, modo) : "lazer";
     lista.append(linhaSite(site, maior, classe));
   }
 }
@@ -936,6 +945,7 @@ function resumoDo(datas) {
     focoProd: resumirProdutividade(foco, config, { soContados: false }),
     sessoes: datas.reduce((s, d) => s + (estado.sessoes[d] || 0), 0),
     lazer: resumirDia(porModo, config).lazer,
+    almoco: resumirDia(porModo, config).almoco,
     metas: diarios.flatMap((d) => d.metas)
   };
 }
@@ -957,7 +967,7 @@ function renderResumo() {
     [String(r.sessoes), (r.sessoes === 1 ? "sessão de foco" : "sessões de foco") + (r.focoProd.pct !== null ? ` · ${r.focoProd.pct}%` : "")],
     [formatarTempo(r.prod.distracao), "em distrações"],
     [`${metasFeitas}/${r.metas.length}`, "metas cumpridas"],
-    [formatarTempo(r.lazer), "em lazer"]
+    [formatarTempo(r.lazer), r.almoco ? `em lazer · 🍽️ ${formatarTempo(r.almoco)} de almoço` : "em lazer"]
   ];
 
   const grade = $("resumo-grade");
